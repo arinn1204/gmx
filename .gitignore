@@ -12,6 +12,7 @@
 *.so
 *.dylib
 *.class
+*.class.go
 
 !*.class.go
 
