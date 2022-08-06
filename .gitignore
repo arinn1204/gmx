@@ -33,3 +33,4 @@ go.work
 gmx
 
 !pkg/*
+java/JNIConnector.class.go
