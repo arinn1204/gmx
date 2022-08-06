@@ -1,7 +1,6 @@
-import javax.management.MBeanParameterInfo;
-import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+package internal.java;
+
+import javax.management.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -15,15 +14,15 @@ public class JNIConnector {
         try {
             String jndiUri = String.format("service:jmx:rmi:///jndi/rmi://%s/jmxrmi", address);
             ObjectName objectName = new ObjectName(mbean);
-            final JMXServiceURL url = new JMXServiceURL(jndiUri);
+            JMXServiceURL url = new JMXServiceURL(jndiUri);
             try(final JMXConnector jmxc = JMXConnectorFactory.connect(url, null)) {
-                final MBeanServerConnection connection = jmxc.getMBeanServerConnection();
+                MBeanServerConnection connection = jmxc.getMBeanServerConnection();
 
-                var beanInfo = connection.getMBeanInfo(objectName);
-                var op = Arrays.stream(beanInfo.getOperations())
+                MBeanInfo beanInfo = connection.getMBeanInfo(objectName);
+                MBeanOperationInfo op = Arrays.stream(beanInfo.getOperations())
                         .filter(f -> f.getName().equals(operation))
                         .findFirst()
-                        .orElseThrow();
+                        .orElseThrow(RuntimeException::new);
 
                 String[] paramTypes = Arrays.stream(op.getSignature())
                         .map(MBeanParameterInfo::getType)
