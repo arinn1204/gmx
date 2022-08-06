@@ -1,5 +1,3 @@
-package org.example;
-
 import javax.management.MBeanParameterInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
