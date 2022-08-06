@@ -3,7 +3,7 @@ package gmx
 import (
 	"log"
 
-	_ "github.com/arinn1204/java"
+	_ "gmx/java"
 )
 
 func DoWork() {
