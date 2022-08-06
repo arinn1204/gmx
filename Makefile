@@ -1,5 +1,5 @@
 INCLUDEFLAGS		:= -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
-LINKERFLAGS     	:= -L$(JAVA_HOME)/jre/lib/server -L$(JAVA_HOME)/jre/lib -ljvm
+LINKERFLAGS     	:= -L$(JAVA_HOME)/lib/server -L$(JAVA_HOME)/lib -ljvm
 CGO_CFLAGS       	:= $(INCLUDEFLAGS)
 CGO_LDFLAGS      	:= $(LINKERFLAGS)
 CLASSPATH 			:= .
