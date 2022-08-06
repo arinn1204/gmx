@@ -6,8 +6,8 @@ CLASSPATH 		:= internal/java
 JNIConnector.class:
 	$(JAVA) internal/java/JNIConnector.java
 	javago --classpath=internal.java --classfile=JNIConnector.class
-	mv java/* internal/java/
-	rmdir java
+	@mv java/* internal/java/
+	@rmdir java
 
 .PHONY:
 
