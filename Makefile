@@ -12,4 +12,7 @@ JNIConnector.class:
 .PHONY:
 
 build: JNIConnector.class
-	go build ./cmd/main
+	go build ./cmd/main -o gmx
+
+clean:
+	rm internal/java/JNIConnector.class gmx

@@ -1,0 +1,5 @@
+package gmx
+
+func DoWork() {
+
+}
