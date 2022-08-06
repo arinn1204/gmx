@@ -12,3 +12,4 @@ JNIConnector.class:
 .PHONY:
 
 build: JNIConnector.class
+	go build ./cmd/main
