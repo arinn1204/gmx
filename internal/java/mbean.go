@@ -37,7 +37,7 @@ func (mbean *MBean) Execute(operation MBeanOperation) (any, error) {
 		return "", err
 	}
 
-	return mbean.toGoString(returnString, STRING)
+	return toGoString(mbean, returnString, STRING)
 }
 
 func invoke(operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) error {
