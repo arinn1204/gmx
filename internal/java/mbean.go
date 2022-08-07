@@ -42,8 +42,8 @@ func (mbean *MBean) Execute(operation MBeanOperation) (any, error) {
 }
 
 func (mbean *MBean) Close() {
-	defer mbean.java.ShutdownJvm()
 	closeReferences(mbean.java.env, mbean.jmxConnection)
+	mbean.java.ShutdownJvm()
 }
 
 func invoke(operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) error {

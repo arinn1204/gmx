@@ -2,7 +2,6 @@ package java
 
 import (
 	"errors"
-	"sync"
 
 	"tekao.net/jnigi"
 )
@@ -10,7 +9,6 @@ import (
 type Java struct {
 	jvm     *jnigi.JVM
 	env     *jnigi.Env
-	lock    *sync.Mutex
 	started bool
 }
 

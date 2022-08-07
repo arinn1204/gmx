@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"sync"
 
 	"tekao.net/jnigi"
 )
@@ -12,9 +11,7 @@ import (
 // CreateJVM will create a JVM for the consumer to execute against
 func CreateJvm() (*Java, error) {
 	//get a lock to ensure you are the only one trying to get the JVM started
-	java := &Java{
-		lock: &sync.Mutex{},
-	}
+	java := &Java{}
 
 	if err := jnigi.LoadJVMLib(jnigi.AttemptToFindJVMLibPath()); err != nil {
 		return nil, errors.New("Failed to create a JVM::" + err.Error())
@@ -37,14 +34,8 @@ func CreateJvm() (*Java, error) {
 	return java, nil
 }
 
-func (java *Java) IsStarted() bool {
-	return java.started
-}
-
+// ShutdownJvm will shut down the JVM, this should be done at the end
 func (java *Java) ShutdownJvm() error {
-	java.lock.Lock()
-	defer java.lock.Unlock()
-
 	if java.jvm == nil {
 		return nil
 	}
