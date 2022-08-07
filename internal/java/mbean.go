@@ -14,8 +14,9 @@ const (
 )
 
 type MBean struct {
-	ServerConnection *jnigi.ObjectRef
-	Java             *Java
+	serverConnection *jnigi.ObjectRef
+	java             *Java
+	jmxConnection    *jnigi.ObjectRef
 }
 
 type MBeanOperation struct {
@@ -40,38 +41,43 @@ func (mbean *MBean) Execute(operation MBeanOperation) (any, error) {
 	return toGoString(mbean, returnString, STRING)
 }
 
+func (mbean *MBean) Close() {
+	defer mbean.java.ShutdownJvm()
+	closeReferences(mbean.java.env, mbean.jmxConnection)
+}
+
 func invoke(operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
-	objectParam, err := mbean.Java.createString(mbeanName)
+	objectParam, err := mbean.java.createString(mbeanName)
 	if err != nil {
 		return err
 	}
 
-	objectName, err := mbean.Java.env.NewObject("javax/management/ObjectName", objectParam)
+	objectName, err := mbean.java.env.NewObject("javax/management/ObjectName", objectParam)
 
 	if err != nil {
 		return errors.New("failed to create ObjectName::" + err.Error())
 	}
 
-	names, err := getNameArray(mbean.Java, operation.Args)
+	names, err := getNameArray(mbean.java, operation.Args)
 
 	if err != nil {
 		return err
 	}
 
-	types, err := getTypeArray(mbean.Java, operation.Args)
+	types, err := getTypeArray(mbean.java, operation.Args)
 
 	if err != nil {
 		return err
 	}
 
-	operationRef, err := mbean.Java.createString(operation.Operation)
+	operationRef, err := mbean.java.createString(operation.Operation)
 
 	if err != nil {
 		return err
 	}
 
-	if err = mbean.ServerConnection.CallMethod(mbean.Java.env, "invoke", outParam, objectName, operationRef, names, types); err != nil {
+	if err = mbean.serverConnection.CallMethod(mbean.java.env, "invoke", outParam, objectName, operationRef, names, types); err != nil {
 		return errors.New("failed to call invoke::" + err.Error())
 	}
 	return nil

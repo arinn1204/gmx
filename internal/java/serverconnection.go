@@ -7,7 +7,7 @@ import (
 	"tekao.net/jnigi"
 )
 
-func buildMBeanServerConnection(java *Java, jndiUri string) (*jnigi.ObjectRef, error) {
+func buildJMXConnector(java *Java, jndiUri string) (*jnigi.ObjectRef, error) {
 	stringRef, err := java.env.NewObject("java/lang/String", []byte(jndiUri))
 
 	if err != nil {
@@ -35,15 +35,5 @@ func buildMBeanServerConnection(java *Java, jndiUri string) (*jnigi.ObjectRef, e
 		return nil, errors.New("failed to create a JMX connection Factory::" + err.Error())
 	}
 
-	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	err = jmxConnector.CallMethod(
-		java.env,
-		"getMBeanServerConnection",
-		mBeanServerConnector)
-
-	if err != nil {
-		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
-	}
-
-	return mBeanServerConnector, nil
+	return jmxConnector, nil
 }

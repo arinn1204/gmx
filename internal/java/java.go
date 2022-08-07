@@ -1,6 +1,7 @@
 package java
 
 import (
+	"errors"
 	"sync"
 
 	"tekao.net/jnigi"
@@ -19,26 +20,38 @@ type IJava interface {
 	IsStarted() bool
 }
 
-func BuildMbeanConnection(uri string) (*MBean, error) {
+func (mbean *MBean) InitializeMBeanConnection(uri string) error {
 	java, err := CreateJvm()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	connection, err := buildMBeanServerConnection(java, uri)
+	jmxConnector, err := buildJMXConnector(java, uri)
 
 	if err != nil {
-		return nil, err
+		if jmxConnector != nil {
+			closeReferences(mbean.java.env, jmxConnector)
+		}
+		return err
 	}
 
-	bean := &MBean{
-		ServerConnection: connection,
-		Java:             java,
+	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
+	err = jmxConnector.CallMethod(
+		java.env,
+		"getMBeanServerConnection",
+		mBeanServerConnector)
+
+	if err != nil {
+		return errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
-	return bean, nil
+	mbean.java = java
+	mbean.serverConnection = mBeanServerConnector
+	mbean.jmxConnection = jmxConnector
+
+	return err
 }
 
-func (mbean *MBean) Close() {
-	mbean.Java.ShutdownJvm()
+func closeReferences(env *jnigi.Env, reference *jnigi.ObjectRef) {
+	reference.CallMethod(env, "close", nil)
 }
