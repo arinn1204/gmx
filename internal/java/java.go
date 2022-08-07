@@ -1,8 +1,6 @@
 package java
 
 import (
-	"errors"
-	"runtime"
 	"sync"
 
 	"tekao.net/jnigi"
@@ -21,66 +19,26 @@ type IJava interface {
 	IsStarted() bool
 }
 
-var JavaRef *Java
-
-func init() {
-	JavaRef = &Java{
-		jvm:     nil,
-		env:     nil,
-		lock:    &sync.Mutex{},
-		started: false,
-	}
-}
-
-// CreateJVM will create a JVM for the consumer to execute against
-func (java *Java) CreateJvm() (*jnigi.Env, error) {
-	//get a lock to ensure you are the only one trying to get the JVM started
-	java.lock.Lock()
-	defer java.lock.Unlock()
-
-	if java.jvm != nil {
-		return java.env, nil
+func BuildMbeanConnection(uri string) (*MBean, error) {
+	java, err := CreateJvm()
+	if err != nil {
+		return nil, err
 	}
 
-	if err := jnigi.LoadJVMLib(jnigi.AttemptToFindJVMLibPath()); err != nil {
-		return nil, errors.New("Failed to create a JVM::" + err.Error())
-	}
-
-	runtime.LockOSThread()
-
-	args := []string{"-Xcheck:jni"}
-
-	jvm, env, err := jnigi.CreateJVM(jnigi.NewJVMInitArgs(false, true, jnigi.DEFAULT_VERSION, args))
+	connection, err := buildMBeanServerConnection(java, uri)
 
 	if err != nil {
-		return nil, errors.New("Failed to create the JVM::" + err.Error())
+		return nil, err
 	}
 
-	java.jvm = jvm
-	java.env = env
-	java.started = true
+	bean := &MBean{
+		ServerConnection: connection,
+		Java:             java,
+	}
 
-	return env, nil
+	return bean, nil
 }
 
-func (java *Java) IsStarted() bool {
-	return java.started
-}
-
-func (java *Java) ShutdownJvm() error {
-	java.lock.Lock()
-	defer java.lock.Unlock()
-
-	if java.jvm == nil {
-		return nil
-	}
-
-	if err := java.jvm.Destroy(); err != nil {
-		return err
-	}
-
-	java.jvm = nil
-	java.env = nil
-
-	return nil
+func (mbean *MBean) Close() {
+	mbean.Java.ShutdownJvm()
 }
