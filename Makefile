@@ -6,17 +6,14 @@ CLASSPATH 			:= .
 
 JAVAC				:= javac
 
-JNIConnector.class:
-	$(JAVAC) internal/java/JNIConnector.java
-
 .PHONY: build clean vendor test integration_test
 
-build: JNIConnector.class
+build:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -o gmx ./cmd/main 
 
 clean:
 	go clean
-	rm JNIConnector.class java/JNIConnector.class.go gmx  2>/dev/null || exit 0
+	rm gmx  2>/dev/null || exit 0
 
 vendor:
 	go mod tidy
