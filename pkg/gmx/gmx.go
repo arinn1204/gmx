@@ -1,11 +1,16 @@
 package gmx
 
-import (
-	"gmx/internal/java"
-	"log"
-)
+type MBeanArg struct {
+	Value     string
+	ClassName string
+}
 
-func DoWork() {
-	log.Println("doin some work")
-	java.CreateJvm()
+type Client struct {
+	Hostname string
+	Port     int
+}
+
+type MBeanOperator interface {
+	GetValue(domain string, name string, operation string, args ...MBeanArg) (string, error)
+	PutValue(domain string, name string, operation string, args ...MBeanArg) (string, error)
 }
