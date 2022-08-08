@@ -9,6 +9,11 @@ type MockMBeanOperator struct {
 	mock.Mock
 }
 
+// Close provides a mock function with given fields:
+func (_m *MockMBeanOperator) Close() {
+	_m.Called()
+}
+
 // GetString provides a mock function with given fields: domain, beanName, operation, argName
 func (_m *MockMBeanOperator) GetString(domain string, beanName string, operation string, argName string) (string, error) {
 	ret := _m.Called(domain, beanName, operation, argName)
@@ -28,6 +33,11 @@ func (_m *MockMBeanOperator) GetString(domain string, beanName string, operation
 	}
 
 	return r0, r1
+}
+
+// Initialize provides a mock function with given fields:
+func (_m *MockMBeanOperator) Initialize() {
+	_m.Called()
 }
 
 // PutString provides a mock function with given fields: domain, name, operation, argName, arvValue

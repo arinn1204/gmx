@@ -29,3 +29,5 @@ integration_test: clean
 
 mock_gen:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" mockery --all --inpackage
+	go mod tidy
+	go mod vendor
