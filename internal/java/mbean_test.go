@@ -13,16 +13,14 @@ func TestMain(m *testing.M) {
 
 	java, _ = CreateJvm()
 
-	m.Run()
+	if os.Getenv("TEST_ENV") == "IT" {
+		m.Run()
+	}
 
 	java.ShutdownJvm()
 }
 
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
-	if os.Getenv("TEST_ENV") != "IT" {
-		return
-	}
-
 	mbean := &MBean{
 		Java: java,
 	}
@@ -32,9 +30,6 @@ func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
 }
 
 func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
-	if os.Getenv("TEST_ENV") != "IT" {
-		return
-	}
 	mbean := &MBean{
 		Java: java,
 	}
@@ -46,10 +41,6 @@ func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
 }
 
 func TestCanCallIntoJmxAndGetResult(t *testing.T) {
-	if os.Getenv("TEST_ENV") != "IT" {
-		return
-	}
-
 	mbean := &MBean{
 		Java: java,
 	}
@@ -94,10 +85,6 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 }
 
 func TestOnConnectionErrors(t *testing.T) {
-	if os.Getenv("TEST_ENV") != "IT" {
-		return
-	}
-
 	mbean := &MBean{
 		Java: java,
 	}
