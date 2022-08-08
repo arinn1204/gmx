@@ -15,7 +15,6 @@ type Java struct {
 type IJava interface {
 	CreateJvm() (*jnigi.Env, error)
 	ShutdownJvm() error
-	IsStarted() bool
 }
 
 func (mbean *MBean) InitializeMBeanConnection(uri string) error {

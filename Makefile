@@ -26,3 +26,6 @@ integration_test: clean
 #	docker rm --force jniexample
 #	docker run -d -p 9001:9001 --name jniexample trixter1394/jniexample-snapshot 
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=IT go test ./...
+
+mock_gen:
+	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" mockery --all --inpackage
