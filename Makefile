@@ -23,8 +23,8 @@ test: clean
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=UT go test ./...
 
 integration_test: clean
-#	docker rm --force jniexample
-#	docker run -d -p 9001:9001 --name jniexample trixter1394/jniexample-snapshot 
+	docker rm --force jniexample 2>/dev/null
+	docker run -d -p 9001:9001 --name jniexample trixter1394/jniexample 2>/dev/null
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=IT go test ./...
 
 mock_gen:
