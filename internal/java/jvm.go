@@ -23,6 +23,8 @@ func CreateJvm() (*Java, error) {
 		return nil, errors.New("Failed to create the JVM::" + err.Error())
 	}
 
+	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
+
 	java.jvm = jvm
 	java.env = env
 	java.started = true
