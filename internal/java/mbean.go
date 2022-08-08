@@ -31,6 +31,12 @@ type MBeanOperationArgs struct {
 	Type  string
 }
 
+type BeanExecutor interface {
+	Execute(operation MBeanOperation) (any, error)
+	InitializeMBeanConnection(uri string) error
+	Close()
+}
+
 func (mbean *MBean) Execute(operation MBeanOperation) (any, error) {
 
 	returnString := jnigi.NewObjectRef(OBJECT)
