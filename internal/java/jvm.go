@@ -3,21 +3,17 @@ package java
 import (
 	"errors"
 	"fmt"
-	"runtime"
 
 	"tekao.net/jnigi"
 )
 
 // CreateJVM will create a JVM for the consumer to execute against
 func CreateJvm() (*Java, error) {
-	//get a lock to ensure you are the only one trying to get the JVM started
 	java := &Java{}
 
 	if err := jnigi.LoadJVMLib(jnigi.AttemptToFindJVMLibPath()); err != nil {
 		return nil, errors.New("Failed to create a JVM::" + err.Error())
 	}
-
-	runtime.LockOSThread()
 
 	args := []string{"-Xcheck:jni"}
 

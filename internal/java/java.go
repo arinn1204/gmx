@@ -19,23 +19,19 @@ type IJava interface {
 }
 
 func (mbean *MBean) InitializeMBeanConnection(uri string) error {
-	java, err := CreateJvm()
-	if err != nil {
-		return err
-	}
 
-	jmxConnector, err := buildJMXConnector(java, uri)
+	jmxConnector, err := buildJMXConnector(mbean.Java, uri)
 
 	if err != nil {
 		if jmxConnector != nil {
-			closeReferences(mbean.java.env, jmxConnector)
+			closeReferences(mbean.Java.env, jmxConnector)
 		}
 		return err
 	}
 
 	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
 	err = jmxConnector.CallMethod(
-		java.env,
+		mbean.Java.env,
 		"getMBeanServerConnection",
 		mBeanServerConnector)
 
@@ -43,7 +39,6 @@ func (mbean *MBean) InitializeMBeanConnection(uri string) error {
 		return errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
-	mbean.java = java
 	mbean.serverConnection = mBeanServerConnector
 	mbean.jmxConnection = jmxConnector
 
