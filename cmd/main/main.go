@@ -9,15 +9,15 @@ import (
 
 func main() {
 
-	javaVm, err := jvm.CreateJvm()
+	javaVM, err := jvm.CreateJvm()
 
 	if err != nil {
 		log.Panicf("failed to start jvm::%s", err.Error())
 	}
 
-	defer javaVm.ShutdownJvm()
+	defer javaVM.ShutdownJvm()
 
-	beanExecutor, err := jvm.CreateMBeanConnection(javaVm, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	beanExecutor, err := jvm.CreateMBeanConnection(javaVM, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 
 	if err != nil {
 		log.Panicf("failed to initialize the connection::%s", err.Error())
