@@ -12,7 +12,7 @@ type Java struct {
 	Env     *jnigi.Env
 	jvm     *jnigi.JVM
 	started bool
-	beans   []*mbean.MBean
+	beans   []*mbean.Client
 }
 
 type IJava interface {

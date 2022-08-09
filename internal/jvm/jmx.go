@@ -9,7 +9,10 @@ import (
 	"tekao.net/jnigi"
 )
 
-func CreateMBeanConnection(java *Java, uri string) (*mbean.MBean, error) {
+// CreateMBeanConnection is the factory method responsible for creating MBean connections based on the provided URI
+// They can be created multiple per thread, or in parallel threads. They are bound to OS threads
+// They should be used with caution for this reason
+func CreateMBeanConnection(java *Java, uri string) (*mbean.Client, error) {
 
 	runtime.LockOSThread()
 	env := java.jvm.AttachCurrentThread()
@@ -29,7 +32,7 @@ func CreateMBeanConnection(java *Java, uri string) (*mbean.MBean, error) {
 		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
-	mbean := &mbean.MBean{
+	mbean := &mbean.Client{
 		JmxConnection: jmxConnector,
 		Env:           env,
 	}

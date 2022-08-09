@@ -38,7 +38,7 @@ func main() {
 			},
 		},
 	}
-	beanExecutor.Execute(javaVm.Env, operation)
+	beanExecutor.Execute(operation)
 
 	operation = mbean.MBeanOperation{
 		Domain:    "org.example",
@@ -51,7 +51,7 @@ func main() {
 			},
 		},
 	}
-	res, err := beanExecutor.Execute(javaVm.Env, operation)
+	res, err := beanExecutor.Execute(operation)
 
 	fmt.Println(res)
 	fmt.Println(err)

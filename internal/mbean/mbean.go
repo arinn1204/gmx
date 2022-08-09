@@ -9,11 +9,19 @@ import (
 	"tekao.net/jnigi"
 )
 
-type MBean struct {
+// Client is the overarching type that will facilitate JMX connections
+// JmxConnection is the living connection that was created when `CreateMBeanConnection` was called to create the Client
+// Env is the environment that belongs to this bean, this will not always match the JVM env!
+type Client struct {
 	JmxConnection *jnigi.ObjectRef
 	Env           *jnigi.Env
 }
 
+// MBeanOperation is the operation that is being performed
+// Domain is the fully qualified name of the MBean `org.example`
+// Name is the name of the mbean itself `game`
+// Operation is the name of the operation that is attempted to be interacted with `getString`
+// Args are the optional argument array that is for the operation
 type MBeanOperation struct {
 	Domain    string
 	Name      string
@@ -21,26 +29,33 @@ type MBeanOperation struct {
 	Args      []MBeanOperationArgs
 }
 
+// MBeanOperationArgs is the type that holds data about the arguments used for MBean operations
+// Value is the value that is being entered
+// Type is the fully qualified java type `java.lang.String`
 type MBeanOperationArgs struct {
 	Value any
 	Type  string
 }
 
+// BeanExecutor is the interface used around this package.
+// This is how an execution is performed.
+// This will always rely on the MBean Client's environment
 type BeanExecutor interface {
-	Execute(env *jnigi.Env, operation MBeanOperation) (any, error)
+	Execute(operation MBeanOperation) (any, error)
 }
 
-func (mbean *MBean) Execute(env *jnigi.Env, operation MBeanOperation) (any, error) {
+// Execute is the orchestration for a JMX command execution.
+func (mbean *Client) Execute(operation MBeanOperation) (any, error) {
 
 	returnString := jnigi.NewObjectRef(jniwrapper.OBJECT)
-	if err := invoke(env, operation, mbean, returnString); err != nil {
+	if err := invoke(mbean.Env, operation, mbean, returnString); err != nil {
 		return "", err
 	}
 
-	return toGoString(env, returnString, jniwrapper.STRING)
+	return toGoString(mbean.Env, returnString, jniwrapper.STRING)
 }
 
-func invoke(env *jnigi.Env, operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) error {
+func invoke(env *jnigi.Env, operation MBeanOperation, mbean *Client, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
 	objectParam, err := jniwrapper.CreateString(env, mbeanName)
 

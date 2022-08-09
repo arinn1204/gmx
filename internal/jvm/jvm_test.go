@@ -45,8 +45,8 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	defer unlockCurrentThread(java)
 
 	var err error
-	var mbean1 *mbean.MBean
-	var mbean2 *mbean.MBean
+	var mbean1 *mbean.Client
+	var mbean2 *mbean.Client
 
 	mbean1, err = CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
@@ -209,7 +209,7 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 	}
 }
 
-func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) any {
+func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) any {
 
 	operation := mbean.MBeanOperation{
 		Domain:    "org.example",
@@ -223,13 +223,13 @@ func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) an
 		},
 	}
 
-	result, err := bean.Execute(env, operation)
+	result, err := bean.Execute(operation)
 	assert.Nil(t, err)
 
 	return result
 }
 
-func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) {
+func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) {
 	operation := mbean.MBeanOperation{
 		Domain:    "org.example",
 		Name:      "game",
@@ -246,7 +246,7 @@ func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) 
 		},
 	}
 
-	_, err := bean.Execute(env, operation)
+	_, err := bean.Execute(operation)
 	assert.Nil(t, err)
 }
 
