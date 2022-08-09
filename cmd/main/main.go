@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	javaVM, err := jvm.CreateJvm()
+	javaVM, err := jvm.CreateJVM()
 
 	if err != nil {
 		log.Panicf("failed to start jvm::%s", err.Error())

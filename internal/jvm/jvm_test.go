@@ -14,7 +14,7 @@ import (
 var java *Java
 
 func TestMain(m *testing.M) {
-	java, _ = CreateJvm()
+	java, _ = CreateJVM()
 
 	if os.Getenv("TEST_ENV") == "IT" {
 		m.Run()

@@ -21,7 +21,7 @@ type IJava interface {
 }
 
 // CreateJVM will create a JVM for the consumer to execute against
-func CreateJvm() (*Java, error) {
+func CreateJVM() (*Java, error) {
 	java := &Java{}
 
 	if err := jnigi.LoadJVMLib(jnigi.AttemptToFindJVMLibPath()); err != nil {

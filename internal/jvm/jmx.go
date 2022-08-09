@@ -35,14 +35,14 @@ func CreateMBeanConnection(java *Java, uri string) (*mbean.Client, error) {
 	return mbean, err
 }
 
-func buildJMXConnector(env *jnigi.Env, jndiUri string) (*jnigi.ObjectRef, error) {
-	stringRef, err := env.NewObject("java/lang/String", []byte(jndiUri))
+func buildJMXConnector(env *jnigi.Env, jndiURI string) (*jnigi.ObjectRef, error) {
+	stringRef, err := env.NewObject("java/lang/String", []byte(jndiURI))
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create a string from %s::%s", jndiUri, err.Error())
+		return nil, fmt.Errorf("failed to create a string from %s::%s", jndiURI, err.Error())
 	}
 
-	jmxUrl, err := env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
+	jmxURL, err := env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
 	if err != nil {
 		return nil, errors.New("failed to create JMXServiceURL::" + err.Error())
 	}
@@ -54,7 +54,7 @@ func buildJMXConnector(env *jnigi.Env, jndiUri string) (*jnigi.ObjectRef, error)
 	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
 
 	connectorFactory := "javax/management/remote/JMXConnectorFactory"
-	if err = env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxUrl); err != nil {
+	if err = env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxURL); err != nil {
 		return nil, errors.New("failed to create a JMX connection Factory::" + err.Error())
 	}
 
