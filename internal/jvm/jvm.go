@@ -3,6 +3,7 @@ package jvm
 import (
 	"errors"
 	"gmx/internal/mbean"
+	"runtime"
 
 	"tekao.net/jnigi"
 )
@@ -25,11 +26,12 @@ func CreateJvm() (*Java, error) {
 	java := &Java{}
 
 	if err := jnigi.LoadJVMLib(jnigi.AttemptToFindJVMLibPath()); err != nil {
-		return nil, errors.New("Failed to create a JVM::" + err.Error())
+		return nil, errors.New("Failed to load the JVM::" + err.Error())
 	}
 
 	args := []string{"-Xcheck:jni"}
 
+	runtime.LockOSThread()
 	jvm, env, err := jnigi.CreateJVM(jnigi.NewJVMInitArgs(false, true, jnigi.DEFAULT_VERSION, args))
 
 	if err != nil {

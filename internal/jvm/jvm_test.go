@@ -3,6 +3,7 @@ package jvm
 import (
 	"gmx/internal/mbean"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,14 +23,16 @@ func TestMain(m *testing.M) {
 }
 
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
+	lockCurrentThread()
 	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
 }
 
 // func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
+// 	lockCurrentThread()
 // 	java.ShutdownJvm()
 
-// 	time.Sleep(1 * time.Second)
+// 	time.Sleep(10 * time.Second)
 
 // 	java, err := CreateJvm()
 // 	assert.Nil(t, err)
@@ -38,6 +41,7 @@ func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
 // }
 
 func TestOnConnectionErrors(t *testing.T) {
+	lockCurrentThread()
 	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:999/jmxrmi")
 
 	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
@@ -58,8 +62,6 @@ type testDataContainer struct {
 }
 
 func TestCanCallIntoJmxAndGetResult(t *testing.T) {
-	mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	assert.Nil(t, err)
 
 	container := []testDataContainer{
 		{
@@ -104,6 +106,11 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 
 	for _, data := range container {
 		t.Run(data.testName, func(t *testing.T) {
+			lockCurrentThread()
+
+			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+			assert.Nil(t, err)
+
 			insertData(java.Env, *data.initialData, t, mbean)
 			result := readData(java.Env, *data.readData, t, mbean)
 			assert.Equal(t, data.expectedVal, result)
@@ -150,4 +157,12 @@ func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) 
 
 	_, err := bean.Execute(env, operation)
 	assert.Nil(t, err)
+}
+
+func lockCurrentThread() {
+	runtime.LockOSThread()
+	env := java.jvm.AttachCurrentThread()
+	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
+
+	java.Env = env
 }
