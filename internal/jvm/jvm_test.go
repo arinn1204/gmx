@@ -24,24 +24,40 @@ func TestMain(m *testing.M) {
 
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
 	lockCurrentThread()
+	defer unlockCurrentThread()
 	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
 }
 
 // func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
-// 	lockCurrentThread()
-// 	java.ShutdownJvm()
+// 	wg := &sync.WaitGroup{}
+// 	wg.Add(1)
 
-// 	time.Sleep(10 * time.Second)
+// 	go func() {
+// 		lockCurrentThread()
+// 		defer wg.Done()
+// 		defer unlockCurrentThread()
+// 		java.ShutdownJvm()
+// 	}()
 
-// 	java, err := CreateJvm()
-// 	assert.Nil(t, err)
-// 	java.ShutdownJvm()
+// 	wg.Add(1)
+// 	go func() {
+// 		lockCurrentThread()
+// 		defer wg.Done()
+// 		defer unlockCurrentThread()
 
+// 		_, err := CreateJvm()
+// 		assert.Nil(t, err)
+// 		java.ShutdownJvm()
+// 	}()
+
+// 	wg.Wait()
 // }
 
 func TestOnConnectionErrors(t *testing.T) {
 	lockCurrentThread()
+	defer unlockCurrentThread()
+
 	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:999/jmxrmi")
 
 	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
@@ -107,6 +123,7 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 	for _, data := range container {
 		t.Run(data.testName, func(t *testing.T) {
 			lockCurrentThread()
+			defer unlockCurrentThread()
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
@@ -163,6 +180,10 @@ func lockCurrentThread() {
 	runtime.LockOSThread()
 	env := java.jvm.AttachCurrentThread()
 	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
-
 	java.Env = env
+}
+
+func unlockCurrentThread() {
+	java.jvm.DetachCurrentThread()
+	runtime.UnlockOSThread()
 }
