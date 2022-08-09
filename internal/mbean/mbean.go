@@ -57,7 +57,7 @@ func (mbean *Client) Execute(operation Operation) (any, error) {
 
 func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
-	objectParam, err := jniwrapper.CreateString(env, mbeanName)
+	objectParam, err := createString(env, mbeanName)
 
 	defer env.DeleteLocalRef(objectParam)
 	if err != nil {
@@ -82,7 +82,7 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 		return err
 	}
 
-	operationRef, err := jniwrapper.CreateString(env, operation.Operation)
+	operationRef, err := createString(env, operation.Operation)
 	defer env.DeleteLocalRef(operationRef)
 	if err != nil {
 		return err
@@ -135,9 +135,9 @@ func getArray(env *jnigi.Env, values []any, classes []string, className string) 
 		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
 
 		if jniClassPath == jniwrapper.STRING {
-			obj, err = jniwrapper.CreateString(env, value.(string))
+			obj, err = createString(env, value.(string))
 		} else {
-			obj, err = jniwrapper.CreateJavaNative(env, value, jniClassPath)
+			obj, err = createJavaNative(env, value, jniClassPath)
 		}
 
 		if err != nil {

@@ -18,7 +18,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 
 	clazz, err := getClass(param, env)
 
-	defer jniwrapper.DeleteLocalReference(env, param)
+	defer env.DeleteLocalRef(param)
 	if err != nil {
 		return "", err
 	}
@@ -130,8 +130,8 @@ func getClass(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 	cls := jnigi.NewObjectRef("java/lang/Class")
 	name := jnigi.NewObjectRef(jniwrapper.STRING)
 
-	defer jniwrapper.DeleteLocalReference(env, name)
-	defer jniwrapper.DeleteLocalReference(env, cls)
+	defer env.DeleteLocalRef(name)
+	defer env.DeleteLocalRef(cls)
 
 	if err := param.CallMethod(env, "getClass", cls); err != nil {
 		return "", errors.New("failed to call getClass::" + err.Error())
@@ -147,4 +147,24 @@ func getClass(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 	}
 
 	return string(bytes), nil
+}
+
+func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
+	stringRef, err := env.NewObject(jniwrapper.STRING, []byte(str))
+	if err != nil {
+		return nil, fmt.Errorf("failed to turn %s into an object::%s", str, err.Error())
+	}
+
+	return stringRef, nil
+}
+
+// CreateJavaNative is a helper used to turn a primitive go type
+// (int, int64, float32/64, bool) into the corresponding java types
+func createJavaNative(env *jnigi.Env, obj any, typeName string) (*jnigi.ObjectRef, error) {
+	ref, err := env.NewObject(typeName, obj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to turn %s into an object::%s", obj, err.Error())
+	}
+
+	return ref, nil
 }
