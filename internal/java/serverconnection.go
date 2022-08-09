@@ -26,13 +26,8 @@ func buildJMXConnector(java *jvm.Java, jndiUri string) (*jnigi.ObjectRef, error)
 
 	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
 
-	err = java.Env.CallStaticMethod(
-		"javax/management/remote/JMXConnectorFactory",
-		"connect",
-		jmxConnector,
-		jmxUrl)
-
-	if err != nil {
+	connectorFactory := "javax/management/remote/JMXConnectorFactory"
+	if err = java.Env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxUrl); err != nil {
 		return nil, errors.New("failed to create a JMX connection Factory::" + err.Error())
 	}
 

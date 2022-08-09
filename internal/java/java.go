@@ -18,12 +18,7 @@ func (mbean *MBean) InitializeMBeanConnection(uri string) error {
 	}
 
 	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	err = jmxConnector.CallMethod(
-		mbean.Java.Env,
-		"getMBeanServerConnection",
-		mBeanServerConnector)
-
-	if err != nil {
+	if err = jmxConnector.CallMethod(mbean.Java.Env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
 		return errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
