@@ -3,10 +3,21 @@ package mbean
 import (
 	"errors"
 	"fmt"
-	"gmx/internal/jniwrapper"
 	"strings"
 
 	"tekao.net/jnigi"
+)
+
+// a collection of JNI representations of java primitive types
+// these will be the boxed representations, not the true primitive
+const (
+	STRING  = "java/lang/String"
+	OBJECT  = "java/lang/Object"
+	LONG    = "java/lang/Long"
+	INTEGER = "java/lang/Integer"
+	BOOLEAN = "java/lang/Boolean"
+	FLOAT   = "java/lang/Float"
+	DOUBLE  = "java/lang/Double"
 )
 
 // Client is the overarching type that will facilitate JMX connections
@@ -47,12 +58,12 @@ type BeanExecutor interface {
 // Execute is the orchestration for a JMX command execution.
 func (mbean *Client) Execute(operation Operation) (any, error) {
 
-	returnString := jnigi.NewObjectRef(jniwrapper.OBJECT)
+	returnString := jnigi.NewObjectRef(OBJECT)
 	if err := invoke(mbean.Env, operation, mbean, returnString); err != nil {
 		return "", err
 	}
 
-	return toGoString(mbean.Env, returnString, jniwrapper.STRING)
+	return toGoString(mbean.Env, returnString, STRING)
 }
 
 func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.ObjectRef) error {
@@ -110,7 +121,7 @@ func getNameArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 		classes = append(classes, arg.Type)
 	}
 
-	return getArray(env, values, classes, jniwrapper.OBJECT)
+	return getArray(env, values, classes, OBJECT)
 }
 
 func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
@@ -119,10 +130,10 @@ func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 
 	for _, arg := range args {
 		types = append(types, arg.Type)
-		classes = append(classes, jniwrapper.STRING)
+		classes = append(classes, STRING)
 	}
 
-	return getArray(env, types, classes, jniwrapper.STRING)
+	return getArray(env, types, classes, STRING)
 }
 
 func getArray(env *jnigi.Env, values []any, classes []string, className string) (*jnigi.ObjectRef, error) {
@@ -134,7 +145,7 @@ func getArray(env *jnigi.Env, values []any, classes []string, className string) 
 
 		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
 
-		if jniClassPath == jniwrapper.STRING {
+		if jniClassPath == STRING {
 			obj, err = createString(env, value.(string))
 		} else {
 			obj, err = createJavaNative(env, value, jniClassPath)

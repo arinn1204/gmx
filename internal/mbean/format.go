@@ -3,7 +3,6 @@ package mbean
 import (
 	"errors"
 	"fmt"
-	"gmx/internal/jniwrapper"
 	"strings"
 
 	"tekao.net/jnigi"
@@ -128,7 +127,7 @@ func fromJavaInteger(param *jnigi.ObjectRef, env *jnigi.Env, dest *int) error {
 func getClass(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 
 	cls := jnigi.NewObjectRef("java/lang/Class")
-	name := jnigi.NewObjectRef(jniwrapper.STRING)
+	name := jnigi.NewObjectRef(STRING)
 
 	defer env.DeleteLocalRef(name)
 	defer env.DeleteLocalRef(cls)
@@ -150,7 +149,7 @@ func getClass(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 }
 
 func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
-	stringRef, err := env.NewObject(jniwrapper.STRING, []byte(str))
+	stringRef, err := env.NewObject(STRING, []byte(str))
 	if err != nil {
 		return nil, fmt.Errorf("failed to turn %s into an object::%s", str, err.Error())
 	}
