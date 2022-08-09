@@ -4,15 +4,17 @@ import (
 	"gmx/internal/mbean"
 )
 
+// Client is the main mbean client.
+// This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
+// The client is also responsible for orchestrating out the JMX operations
 type Client struct {
-	Hostname string
-	Port     int
-	client   *mbean.Client
+	Hostname string        // The hostname/ip address of the JMXRMI server
+	Port     int           // The port that RMI is configured to listen on
+	client   *mbean.Client // The underlying MBean client
 }
 
+// MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
 type MBeanOperator interface {
-	Initialize()
-	Close()
-	GetString(domain string, beanName string, operation string, argName string) (string, error)
-	PutString(domain string, name string, operation string, argName string, arvValue string) (string, error)
+	Initialize() (*Client, error) // This will initialize the JVM if needed (only once) and an MBean connection
+	Close()                       // This will close out the JVM and free up any clients that are remaining
 }
