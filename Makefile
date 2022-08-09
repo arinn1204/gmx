@@ -19,6 +19,10 @@ vendor:
 	go mod tidy
 	go mod vendor
 
+lint:
+	go fmt ./...
+	golint cmd/... internal/... pkg/...
+
 test: clean
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=UT go test ./...
 
