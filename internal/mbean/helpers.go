@@ -1,4 +1,4 @@
-package java
+package mbean
 
 import "tekao.net/jnigi"
 

@@ -1,4 +1,4 @@
-package java
+package mbean
 
 import (
 	"gmx/internal/jvm"
