@@ -83,6 +83,12 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			testName:    "LongTesting",
 			expectedVal: int64(2148493647),
 		},
+		{
+			initialData: &testData{value: 214493647, className: "java.lang.Integer", operationName: "putInteger"},
+			readData:    &testData{value: "messi", operationName: "getInteger"},
+			testName:    "IntegerTesting",
+			expectedVal: 214493647,
+		},
 	}
 
 	for _, data := range container {

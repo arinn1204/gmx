@@ -17,7 +17,7 @@ func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (any, e
 
 	clazz, err := getClass(param, mbean)
 
-	defer mbean.Java.env.DeleteLocalRef(param)
+	defer deleteReference(mbean, param)
 	if err != nil {
 		return "", err
 	}
@@ -33,6 +33,14 @@ func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (any, e
 		res := int64(0)
 
 		if err := fromJavaLong(param, mbean, &res); err != nil {
+			return "", err
+		}
+
+		result = res
+	} else if strings.EqualFold(clazz, "Integer") {
+		res := 0
+
+		if err := fromJavaInteger(param, mbean, &res); err != nil {
 			return "", err
 		}
 
@@ -53,9 +61,16 @@ func fromJavaString(param *jnigi.ObjectRef, mbean *MBean, dest *[]byte) error {
 }
 
 func fromJavaLong(param *jnigi.ObjectRef, mbean *MBean, dest *int64) error {
-
 	if err := param.CallMethod(mbean.Java.env, "longValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
+	}
+
+	return nil
+}
+
+func fromJavaInteger(param *jnigi.ObjectRef, mbean *MBean, dest *int) error {
+	if err := param.CallMethod(mbean.Java.env, "intValue", dest); err != nil {
+		return errors.New("failed to create a integer::" + err.Error())
 	}
 
 	return nil
@@ -66,8 +81,8 @@ func getClass(param *jnigi.ObjectRef, mbean *MBean) (string, error) {
 	cls := jnigi.NewObjectRef("java/lang/Class")
 	name := jnigi.NewObjectRef(STRING)
 
-	defer mbean.Java.env.DeleteLocalRef(cls)
-	defer mbean.Java.env.DeleteLocalRef(name)
+	defer deleteReference(mbean, name)
+	defer deleteReference(mbean, cls)
 
 	if err := param.CallMethod(mbean.Java.env, "getClass", cls); err != nil {
 		return "", errors.New("failed to call getClass::" + err.Error())

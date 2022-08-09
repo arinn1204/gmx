@@ -62,32 +62,31 @@ func invoke(operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) e
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
 	objectParam, err := mbean.Java.createString(mbeanName)
 
-	defer mbean.Java.env.DeleteLocalRef(objectParam)
-
+	defer deleteReference(mbean, objectParam)
 	if err != nil {
 		return err
 	}
 
 	objectName, err := mbean.Java.env.NewObject("javax/management/ObjectName", objectParam)
-	defer mbean.Java.env.DeleteLocalRef(objectName)
+	defer deleteReference(mbean, objectName)
 	if err != nil {
 		return errors.New("failed to create ObjectName::" + err.Error())
 	}
 
 	names, err := getNameArray(mbean.Java, operation.Args)
-	defer mbean.Java.env.DeleteLocalRef(names)
+	defer deleteReference(mbean, names)
 	if err != nil {
 		return err
 	}
 
 	types, err := getTypeArray(mbean.Java, operation.Args)
-	defer mbean.Java.env.DeleteLocalRef(types)
+	defer deleteReference(mbean, types)
 	if err != nil {
 		return err
 	}
 
 	operationRef, err := mbean.Java.createString(operation.Operation)
-	defer mbean.Java.env.DeleteLocalRef(operationRef)
+	defer deleteReference(mbean, operationRef)
 	if err != nil {
 		return err
 	}
@@ -136,6 +135,10 @@ func getArray(java *Java, values []any, classes []string, className string) (*jn
 			obj, err = java.createString(value.(string))
 		} else if jniClassPath == LONG {
 			obj, err = java.createLong(value.(int64))
+		} else if jniClassPath == INTEGER {
+			obj, err = java.createInteger(value.(int))
+		} else {
+			return nil, fmt.Errorf("no mapper found for type %s", jniClassPath)
 		}
 
 		if err != nil {
