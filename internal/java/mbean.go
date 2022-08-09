@@ -15,6 +15,8 @@ const (
 	LONG    = "java/lang/Long"
 	INTEGER = "java/lang/Integer"
 	BOOLEAN = "java/lang/Boolean"
+	FLOAT   = "java/lang/Float"
+	DOUBLE  = "java/lang/Double"
 )
 
 type MBean struct {
@@ -133,12 +135,8 @@ func getArray(java *Java, values []any, classes []string, className string) (*jn
 
 		if jniClassPath == STRING {
 			obj, err = java.createString(value.(string))
-		} else if jniClassPath == LONG {
-			obj, err = java.createLong(value.(int64))
-		} else if jniClassPath == INTEGER {
-			obj, err = java.createInteger(value.(int))
 		} else {
-			return nil, fmt.Errorf("no mapper found for type %s", jniClassPath)
+			obj, err = java.createJavaNative(value, jniClassPath)
 		}
 
 		if err != nil {

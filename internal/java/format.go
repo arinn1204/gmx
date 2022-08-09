@@ -45,6 +45,30 @@ func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (any, e
 		}
 
 		result = res
+	} else if strings.EqualFold(clazz, "Double") {
+		res := float64(0)
+
+		if err := fromJavaDouble(param, mbean, &res); err != nil {
+			return "", err
+		}
+
+		result = res
+	} else if strings.EqualFold(clazz, "Float") {
+		res := float32(0)
+
+		if err := fromJavaFloat(param, mbean, &res); err != nil {
+			return "", err
+		}
+
+		result = res
+	} else if strings.EqualFold(clazz, "Boolean") {
+		res := false
+
+		if err := fromJavaBoolean(param, mbean, &res); err != nil {
+			return "", err
+		}
+
+		result = res
 	} else {
 		return "", fmt.Errorf("type of %s does not have a defined handler", clazz)
 	}
@@ -62,6 +86,30 @@ func fromJavaString(param *jnigi.ObjectRef, mbean *MBean, dest *[]byte) error {
 
 func fromJavaLong(param *jnigi.ObjectRef, mbean *MBean, dest *int64) error {
 	if err := param.CallMethod(mbean.Java.env, "longValue", dest); err != nil {
+		return errors.New("failed to create a long::" + err.Error())
+	}
+
+	return nil
+}
+
+func fromJavaDouble(param *jnigi.ObjectRef, mbean *MBean, dest *float64) error {
+	if err := param.CallMethod(mbean.Java.env, "doubleValue", dest); err != nil {
+		return errors.New("failed to create a long::" + err.Error())
+	}
+
+	return nil
+}
+
+func fromJavaFloat(param *jnigi.ObjectRef, mbean *MBean, dest *float32) error {
+	if err := param.CallMethod(mbean.Java.env, "floatValue", dest); err != nil {
+		return errors.New("failed to create a long::" + err.Error())
+	}
+
+	return nil
+}
+
+func fromJavaBoolean(param *jnigi.ObjectRef, mbean *MBean, dest *bool) error {
+	if err := param.CallMethod(mbean.Java.env, "booleanValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
 
