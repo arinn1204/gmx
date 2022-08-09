@@ -6,7 +6,7 @@ CLASSPATH 			:= .
 
 JAVAC				:= javac
 
-.PHONY: build clean vendor test integration_test
+.PHONY: build clean vendor test integration_test mocks
 
 build:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -o gmx ./cmd/main 
@@ -27,7 +27,7 @@ integration_test: clean
 	docker run -d -p 9001:9001 --name jniexample trixter1394/jniexample 2>/dev/null
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=IT go test ./...
 
-mock_gen:
+mocks:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" mockery --all --inpackage
 	go mod tidy
 	go mod vendor
