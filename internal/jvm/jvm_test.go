@@ -1,18 +1,18 @@
-package mbean
+package jvm
 
 import (
-	"gmx/internal/jvm"
+	"gmx/internal/mbean"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"tekao.net/jnigi"
 )
 
-var java *jvm.Java
+var java *Java
 
 func TestMain(m *testing.M) {
-
-	java, _ = jvm.CreateJvm()
+	java, _ = CreateJvm()
 
 	if os.Getenv("TEST_ENV") == "IT" {
 		m.Run()
@@ -22,30 +22,23 @@ func TestMain(m *testing.M) {
 }
 
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
-	mbean := &MBean{
-		Java: java,
-	}
-	err := mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	defer mbean.Close()
+	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
 }
 
-func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
-	mbean := &MBean{
-		Java: java,
-	}
-	mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	mbean.Close()
+// func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
+// 	java.ShutdownJvm()
 
-	mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	mbean.Close()
-}
+// 	time.Sleep(1 * time.Second)
+
+// 	java, err := CreateJvm()
+// 	assert.Nil(t, err)
+// 	java.ShutdownJvm()
+
+// }
 
 func TestOnConnectionErrors(t *testing.T) {
-	mbean := &MBean{
-		Java: java,
-	}
-	err := mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9999/jmxrmi")
+	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:999/jmxrmi")
 
 	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
 	assert.Equal(t, expected, err.Error())
@@ -65,11 +58,8 @@ type testDataContainer struct {
 }
 
 func TestCanCallIntoJmxAndGetResult(t *testing.T) {
-	mbean := &MBean{
-		Java: java,
-	}
-	mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	defer mbean.Close()
+	mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	assert.Nil(t, err)
 
 	container := []testDataContainer{
 		{
@@ -114,20 +104,20 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 
 	for _, data := range container {
 		t.Run(data.testName, func(t *testing.T) {
-			insertData(*data.initialData, t, mbean)
-			result := readData(*data.readData, t, mbean)
+			insertData(java.Env, *data.initialData, t, mbean)
+			result := readData(java.Env, *data.readData, t, mbean)
 			assert.Equal(t, data.expectedVal, result)
 		})
 	}
 }
 
-func readData(data testData, t *testing.T, mbean *MBean) any {
+func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) any {
 
-	operation := MBeanOperation{
+	operation := mbean.MBeanOperation{
 		Domain:    "org.example",
 		Name:      "game",
 		Operation: data.operationName,
-		Args: []MBeanOperationArgs{
+		Args: []mbean.MBeanOperationArgs{
 			{
 				Value: data.value,
 				Type:  "java.lang.String",
@@ -135,18 +125,18 @@ func readData(data testData, t *testing.T, mbean *MBean) any {
 		},
 	}
 
-	result, err := mbean.Execute(operation)
+	result, err := bean.Execute(env, operation)
 	assert.Nil(t, err)
 
 	return result
 }
 
-func insertData(data testData, t *testing.T, mbean *MBean) {
-	operation := MBeanOperation{
+func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.MBean) {
+	operation := mbean.MBeanOperation{
 		Domain:    "org.example",
 		Name:      "game",
 		Operation: data.operationName,
-		Args: []MBeanOperationArgs{
+		Args: []mbean.MBeanOperationArgs{
 			{
 				Value: "messi",
 				Type:  "java.lang.String",
@@ -158,6 +148,6 @@ func insertData(data testData, t *testing.T, mbean *MBean) {
 		},
 	}
 
-	_, err := mbean.Execute(operation)
+	_, err := bean.Execute(env, operation)
 	assert.Nil(t, err)
 }

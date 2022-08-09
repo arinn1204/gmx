@@ -1,14 +1,13 @@
-package mbean
+package jvm
 
 import (
 	"errors"
 	"fmt"
-	"gmx/internal/jvm"
 
 	"tekao.net/jnigi"
 )
 
-func buildJMXConnector(java *jvm.Java, jndiUri string) (*jnigi.ObjectRef, error) {
+func (java *Java) buildJMXConnector(jndiUri string) (*jnigi.ObjectRef, error) {
 	stringRef, err := java.Env.NewObject("java/lang/String", []byte(jndiUri))
 
 	if err != nil {

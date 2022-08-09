@@ -2,31 +2,22 @@ package jvm
 
 import (
 	"errors"
-	"fmt"
+	"gmx/internal/mbean"
 
 	"tekao.net/jnigi"
-)
-
-// the commonly used types
-const (
-	STRING  = "java/lang/String"
-	OBJECT  = "java/lang/Object"
-	LONG    = "java/lang/Long"
-	INTEGER = "java/lang/Integer"
-	BOOLEAN = "java/lang/Boolean"
-	FLOAT   = "java/lang/Float"
-	DOUBLE  = "java/lang/Double"
 )
 
 type Java struct {
 	Env     *jnigi.Env
 	jvm     *jnigi.JVM
 	started bool
+	beans   []*mbean.MBean
 }
 
 type IJava interface {
-	CreateJvm() (*jnigi.Env, error)
+	CreateJvm() (*Java, error)
 	ShutdownJvm() error
+	CreateMBeanConnection(uri string) (*mbean.MBean, error)
 }
 
 // CreateJVM will create a JVM for the consumer to execute against
@@ -56,8 +47,12 @@ func CreateJvm() (*Java, error) {
 
 // ShutdownJvm will shut down the JVM, this should be done at the end
 func (java *Java) ShutdownJvm() error {
-	if java.jvm == nil {
+	if java == nil || java.jvm == nil {
 		return nil
+	}
+
+	for _, bean := range java.beans {
+		bean.JmxConnection.CallMethod(java.Env, "close", nil)
 	}
 
 	if err := java.jvm.Destroy(); err != nil {
@@ -70,20 +65,26 @@ func (java *Java) ShutdownJvm() error {
 	return nil
 }
 
-func (java *Java) CreateString(str string) (*jnigi.ObjectRef, error) {
-	fileNameRef, err := java.Env.NewObject(STRING, []byte(str))
+func (java *Java) CreateMBeanConnection(uri string) (*mbean.MBean, error) {
+
+	jmxConnector, err := java.buildJMXConnector(uri)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to turn %s into an object::%s", str, err.Error())
+		if jmxConnector != nil {
+			jmxConnector.CallMethod(java.Env, "close", nil)
+		}
+		return nil, err
 	}
 
-	return fileNameRef, nil
-}
-
-func (java *Java) CreateJavaNative(obj any, typeName string) (*jnigi.ObjectRef, error) {
-	ref, err := java.Env.NewObject(typeName, obj)
-	if err != nil {
-		return nil, fmt.Errorf("failed to turn %s into an object::%s", obj, err.Error())
+	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
+	if err = jmxConnector.CallMethod(java.Env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
-	return ref, nil
+	mbean := &mbean.MBean{
+		JmxConnection: jmxConnector,
+		Env:           java.Env,
+	}
+
+	return mbean, err
 }

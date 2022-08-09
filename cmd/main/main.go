@@ -2,19 +2,27 @@ package main
 
 import (
 	"fmt"
+	"gmx/internal/jvm"
 	"gmx/internal/mbean"
 	"log"
 )
 
 func main() {
 
-	beanExecutor := &mbean.MBean{}
+	jvm, err := jvm.CreateJvm()
 
-	if err := beanExecutor.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi"); err != nil {
+	if err != nil {
+		log.Panicf("failed to start jvm::%s", err.Error())
+	}
+
+	defer jvm.ShutdownJvm()
+
+	beanExecutor, err := jvm.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+
+	if err != nil {
 		log.Panicf("failed to initialize the connection::%s", err.Error())
 	}
 
-	defer beanExecutor.Close()
 	operation := mbean.MBeanOperation{
 		Domain:    "org.example",
 		Name:      "game",
@@ -30,7 +38,7 @@ func main() {
 			},
 		},
 	}
-	beanExecutor.Execute(operation)
+	beanExecutor.Execute(jvm.Env, operation)
 
 	operation = mbean.MBeanOperation{
 		Domain:    "org.example",
@@ -43,7 +51,7 @@ func main() {
 			},
 		},
 	}
-	res, err := beanExecutor.Execute(operation)
+	res, err := beanExecutor.Execute(jvm.Env, operation)
 
 	fmt.Println(res)
 	fmt.Println(err)
