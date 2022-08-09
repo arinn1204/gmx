@@ -7,3 +7,7 @@ func deleteReference(mbean *MBean, param *jnigi.ObjectRef) {
 		mbean.Java.Env.DeleteLocalRef(param)
 	}
 }
+
+func closeReferences(env *jnigi.Env, reference *jnigi.ObjectRef) {
+	reference.CallMethod(env, "close", nil)
+}

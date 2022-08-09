@@ -33,6 +33,28 @@ type BeanExecutor interface {
 	Close()
 }
 
+func (mbean *MBean) InitializeMBeanConnection(uri string) error {
+
+	jmxConnector, err := buildJMXConnector(mbean.Java, uri)
+
+	if err != nil {
+		if jmxConnector != nil {
+			closeReferences(mbean.Java.Env, jmxConnector)
+		}
+		return err
+	}
+
+	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
+	if err = jmxConnector.CallMethod(mbean.Java.Env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+		return errors.New("failed to create the mbean server connection::" + err.Error())
+	}
+
+	mbean.serverConnection = mBeanServerConnector
+	mbean.jmxConnection = jmxConnector
+
+	return err
+}
+
 func (mbean *MBean) Execute(operation MBeanOperation) (any, error) {
 
 	returnString := jnigi.NewObjectRef(jvm.OBJECT)
