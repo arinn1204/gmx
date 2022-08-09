@@ -56,3 +56,12 @@ func (java *Java) createString(str string) (*jnigi.ObjectRef, error) {
 
 	return fileNameRef, nil
 }
+
+func (java *Java) createLong(obj int64) (*jnigi.ObjectRef, error) {
+	fileNameRef, err := java.env.NewObject(LONG, obj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to turn %d into an object::%s", obj, err.Error())
+	}
+
+	return fileNameRef, nil
+}

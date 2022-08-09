@@ -2,12 +2,13 @@ package java
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"tekao.net/jnigi"
 )
 
-func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (string, error) {
+func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (any, error) {
 	if param.IsNil() {
 		return "NIL", nil
 	}
@@ -16,19 +17,31 @@ func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (string
 
 	clazz, err := getClass(param, mbean)
 
+	defer mbean.Java.env.DeleteLocalRef(param)
 	if err != nil {
 		return "", err
 	}
+
+	var result any
 
 	if strings.EqualFold(clazz, "String") {
 		if err := fromJavaString(param, mbean, &bytes); err != nil {
 			return "", err
 		}
+		result = string(bytes)
+	} else if strings.EqualFold(clazz, "Long") {
+		res := int64(0)
+
+		if err := fromJavaLong(param, mbean, &res); err != nil {
+			return "", err
+		}
+
+		result = res
 	} else {
-		return "", nil
+		return "", fmt.Errorf("type of %s does not have a defined handler", clazz)
 	}
 
-	return string(bytes), nil
+	return result, nil
 }
 
 func fromJavaString(param *jnigi.ObjectRef, mbean *MBean, dest *[]byte) error {
@@ -39,10 +52,22 @@ func fromJavaString(param *jnigi.ObjectRef, mbean *MBean, dest *[]byte) error {
 	return nil
 }
 
+func fromJavaLong(param *jnigi.ObjectRef, mbean *MBean, dest *int64) error {
+
+	if err := param.CallMethod(mbean.Java.env, "longValue", dest); err != nil {
+		return errors.New("failed to create a long::" + err.Error())
+	}
+
+	return nil
+}
+
 func getClass(param *jnigi.ObjectRef, mbean *MBean) (string, error) {
 
 	cls := jnigi.NewObjectRef("java/lang/Class")
 	name := jnigi.NewObjectRef(STRING)
+
+	defer mbean.Java.env.DeleteLocalRef(cls)
+	defer mbean.Java.env.DeleteLocalRef(name)
 
 	if err := param.CallMethod(mbean.Java.env, "getClass", cls); err != nil {
 		return "", errors.New("failed to call getClass::" + err.Error())

@@ -40,25 +40,35 @@ func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
 	mbean.Close()
 }
 
+func TestOnConnectionErrors(t *testing.T) {
+	mbean := &MBean{
+		Java: java,
+	}
+	err := mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9999/jmxrmi")
+
+	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
+	assert.Equal(t, expected, err.Error())
+}
+
+type testData struct {
+	value         any
+	className     string
+	operationName string
+}
+
+type testDataContainer struct {
+	initialData *testData
+	readData    *testData
+	testName    string
+	expectedVal any
+}
+
 func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 	mbean := &MBean{
 		Java: java,
 	}
 	mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	defer mbean.Close()
-
-	type testData struct {
-		value         string
-		className     string
-		operationName string
-	}
-
-	type testDataContainer struct {
-		initialData *testData
-		readData    *testData
-		testName    string
-		expectedVal any
-	}
 
 	container := []testDataContainer{
 		{
@@ -67,27 +77,32 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			testName:    "StringTesting",
 			expectedVal: "fan369",
 		},
+		{
+			initialData: &testData{value: int64(2148493647), className: "java.lang.Long", operationName: "putLong"},
+			readData:    &testData{value: "messi", operationName: "getLong"},
+			testName:    "LongTesting",
+			expectedVal: int64(2148493647),
+		},
 	}
 
 	for _, data := range container {
 		t.Run(data.testName, func(t *testing.T) {
-			initialData := data.initialData
-			insertData(initialData.value, initialData.className, initialData.operationName, t, mbean)
-			result := readData(data.readData.value, data.readData.operationName, t, mbean)
-			assert.Equal(t, "fan369", result)
+			insertData(*data.initialData, t, mbean)
+			result := readData(*data.readData, t, mbean)
+			assert.Equal(t, data.expectedVal, result)
 		})
 	}
 }
 
-func readData(value string, operationName string, t *testing.T, mbean *MBean) any {
+func readData(data testData, t *testing.T, mbean *MBean) any {
 
 	operation := MBeanOperation{
 		Domain:    "org.example",
 		Name:      "game",
-		Operation: operationName,
+		Operation: data.operationName,
 		Args: []MBeanOperationArgs{
 			{
-				Value: value,
+				Value: data.value,
 				Type:  "java.lang.String",
 			},
 		},
@@ -99,33 +114,23 @@ func readData(value string, operationName string, t *testing.T, mbean *MBean) an
 	return result
 }
 
-func insertData(value string, className string, operationName string, t *testing.T, mbean *MBean) {
+func insertData(data testData, t *testing.T, mbean *MBean) {
 	operation := MBeanOperation{
 		Domain:    "org.example",
 		Name:      "game",
-		Operation: operationName,
+		Operation: data.operationName,
 		Args: []MBeanOperationArgs{
 			{
 				Value: "messi",
 				Type:  "java.lang.String",
 			},
 			{
-				Value: value,
-				Type:  className,
+				Value: data.value,
+				Type:  data.className,
 			},
 		},
 	}
 
 	_, err := mbean.Execute(operation)
 	assert.Nil(t, err)
-}
-
-func TestOnConnectionErrors(t *testing.T) {
-	mbean := &MBean{
-		Java: java,
-	}
-	err := mbean.InitializeMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9999/jmxrmi")
-
-	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
-	assert.Equal(t, expected, err.Error())
 }
