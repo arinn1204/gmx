@@ -18,7 +18,6 @@ type Java struct {
 type IJava interface {
 	CreateJvm() (*Java, error)
 	ShutdownJvm() error
-	CreateMBeanConnection(uri string) (*mbean.MBean, error)
 }
 
 // CreateJVM will create a JVM for the consumer to execute against
@@ -38,7 +37,7 @@ func CreateJvm() (*Java, error) {
 		return nil, errors.New("Failed to create the JVM::" + err.Error())
 	}
 
-	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
+	configureEnvironment(env)
 
 	java.jvm = jvm
 	java.Env = env
@@ -67,26 +66,6 @@ func (java *Java) ShutdownJvm() error {
 	return nil
 }
 
-func (java *Java) CreateMBeanConnection(uri string) (*mbean.MBean, error) {
-
-	jmxConnector, err := java.buildJMXConnector(uri)
-
-	if err != nil {
-		if jmxConnector != nil {
-			jmxConnector.CallMethod(java.Env, "close", nil)
-		}
-		return nil, err
-	}
-
-	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	if err = jmxConnector.CallMethod(java.Env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
-		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
-	}
-
-	mbean := &mbean.MBean{
-		JmxConnection: jmxConnector,
-		Env:           java.Env,
-	}
-
-	return mbean, err
+func configureEnvironment(env *jnigi.Env) {
+	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
 }

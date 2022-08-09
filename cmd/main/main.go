@@ -9,15 +9,15 @@ import (
 
 func main() {
 
-	jvm, err := jvm.CreateJvm()
+	javaVm, err := jvm.CreateJvm()
 
 	if err != nil {
 		log.Panicf("failed to start jvm::%s", err.Error())
 	}
 
-	defer jvm.ShutdownJvm()
+	defer javaVm.ShutdownJvm()
 
-	beanExecutor, err := jvm.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	beanExecutor, err := jvm.CreateMBeanConnection(javaVm, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 
 	if err != nil {
 		log.Panicf("failed to initialize the connection::%s", err.Error())
@@ -38,7 +38,7 @@ func main() {
 			},
 		},
 	}
-	beanExecutor.Execute(jvm.Env, operation)
+	beanExecutor.Execute(javaVm.Env, operation)
 
 	operation = mbean.MBeanOperation{
 		Domain:    "org.example",
@@ -51,7 +51,7 @@ func main() {
 			},
 		},
 	}
-	res, err := beanExecutor.Execute(jvm.Env, operation)
+	res, err := beanExecutor.Execute(javaVm.Env, operation)
 
 	fmt.Println(res)
 	fmt.Println(err)

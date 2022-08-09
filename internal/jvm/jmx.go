@@ -3,18 +3,48 @@ package jvm
 import (
 	"errors"
 	"fmt"
+	"gmx/internal/mbean"
+	"runtime"
 
 	"tekao.net/jnigi"
 )
 
-func (java *Java) buildJMXConnector(jndiUri string) (*jnigi.ObjectRef, error) {
-	stringRef, err := java.Env.NewObject("java/lang/String", []byte(jndiUri))
+func CreateMBeanConnection(java *Java, uri string) (*mbean.MBean, error) {
+
+	runtime.LockOSThread()
+	env := java.jvm.AttachCurrentThread()
+	configureEnvironment(env)
+
+	jmxConnector, err := buildJMXConnector(env, uri)
+
+	if err != nil {
+		if jmxConnector != nil {
+			jmxConnector.CallMethod(env, "close", nil)
+		}
+		return nil, err
+	}
+
+	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
+	if err = jmxConnector.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
+	}
+
+	mbean := &mbean.MBean{
+		JmxConnection: jmxConnector,
+		Env:           env,
+	}
+
+	return mbean, err
+}
+
+func buildJMXConnector(env *jnigi.Env, jndiUri string) (*jnigi.ObjectRef, error) {
+	stringRef, err := env.NewObject("java/lang/String", []byte(jndiUri))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a string from %s::%s", jndiUri, err.Error())
 	}
 
-	jmxUrl, err := java.Env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
+	jmxUrl, err := env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
 	if err != nil {
 		return nil, errors.New("failed to create JMXServiceURL::" + err.Error())
 	}
@@ -26,7 +56,7 @@ func (java *Java) buildJMXConnector(jndiUri string) (*jnigi.ObjectRef, error) {
 	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
 
 	connectorFactory := "javax/management/remote/JMXConnectorFactory"
-	if err = java.Env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxUrl); err != nil {
+	if err = env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxUrl); err != nil {
 		return nil, errors.New("failed to create a JMX connection Factory::" + err.Error())
 	}
 
