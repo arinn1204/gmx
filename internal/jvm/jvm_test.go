@@ -211,11 +211,11 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 
 func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) any {
 
-	operation := mbean.MBeanOperation{
+	operation := mbean.Operation{
 		Domain:    "org.example",
 		Name:      "game",
 		Operation: data.operationName,
-		Args: []mbean.MBeanOperationArgs{
+		Args: []mbean.OperationArgs{
 			{
 				Value: data.value,
 				Type:  "java.lang.String",
@@ -230,11 +230,11 @@ func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) a
 }
 
 func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) {
-	operation := mbean.MBeanOperation{
+	operation := mbean.Operation{
 		Domain:    "org.example",
 		Name:      "game",
 		Operation: data.operationName,
-		Args: []mbean.MBeanOperationArgs{
+		Args: []mbean.OperationArgs{
 			{
 				Value: "messi",
 				Type:  "java.lang.String",

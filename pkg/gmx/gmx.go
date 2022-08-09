@@ -1,11 +1,13 @@
 package gmx
 
-import "gmx/internal/jvm"
+import (
+	"gmx/internal/mbean"
+)
 
 type Client struct {
 	Hostname string
 	Port     int
-	jvm      *jvm.Java
+	client   *mbean.Client
 }
 
 type MBeanOperator interface {

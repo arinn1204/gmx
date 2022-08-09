@@ -17,22 +17,22 @@ type Client struct {
 	Env           *jnigi.Env
 }
 
-// MBeanOperation is the operation that is being performed
+// Operation is the operation that is being performed
 // Domain is the fully qualified name of the MBean `org.example`
 // Name is the name of the mbean itself `game`
 // Operation is the name of the operation that is attempted to be interacted with `getString`
 // Args are the optional argument array that is for the operation
-type MBeanOperation struct {
+type Operation struct {
 	Domain    string
 	Name      string
 	Operation string
-	Args      []MBeanOperationArgs
+	Args      []OperationArgs
 }
 
-// MBeanOperationArgs is the type that holds data about the arguments used for MBean operations
+// OperationArgs is the type that holds data about the arguments used for MBean operations
 // Value is the value that is being entered
 // Type is the fully qualified java type `java.lang.String`
-type MBeanOperationArgs struct {
+type OperationArgs struct {
 	Value any
 	Type  string
 }
@@ -41,11 +41,11 @@ type MBeanOperationArgs struct {
 // This is how an execution is performed.
 // This will always rely on the MBean Client's environment
 type BeanExecutor interface {
-	Execute(operation MBeanOperation) (any, error)
+	Execute(operation Operation) (any, error)
 }
 
 // Execute is the orchestration for a JMX command execution.
-func (mbean *Client) Execute(operation MBeanOperation) (any, error) {
+func (mbean *Client) Execute(operation Operation) (any, error) {
 
 	returnString := jnigi.NewObjectRef(jniwrapper.OBJECT)
 	if err := invoke(mbean.Env, operation, mbean, returnString); err != nil {
@@ -55,7 +55,7 @@ func (mbean *Client) Execute(operation MBeanOperation) (any, error) {
 	return toGoString(mbean.Env, returnString, jniwrapper.STRING)
 }
 
-func invoke(env *jnigi.Env, operation MBeanOperation, mbean *Client, outParam *jnigi.ObjectRef) error {
+func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
 	objectParam, err := jniwrapper.CreateString(env, mbeanName)
 
@@ -101,7 +101,7 @@ func invoke(env *jnigi.Env, operation MBeanOperation, mbean *Client, outParam *j
 	return nil
 }
 
-func getNameArray(env *jnigi.Env, args []MBeanOperationArgs) (*jnigi.ObjectRef, error) {
+func getNameArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
 	values := make([]any, 0)
 	classes := make([]string, 0)
 
@@ -113,7 +113,7 @@ func getNameArray(env *jnigi.Env, args []MBeanOperationArgs) (*jnigi.ObjectRef, 
 	return getArray(env, values, classes, jniwrapper.OBJECT)
 }
 
-func getTypeArray(env *jnigi.Env, args []MBeanOperationArgs) (*jnigi.ObjectRef, error) {
+func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
 	types := make([]any, 0)
 	classes := make([]string, 0)
 

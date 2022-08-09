@@ -10,11 +10,11 @@ type MockBeanExecutor struct {
 }
 
 // Execute provides a mock function with given fields: operation
-func (_m *MockBeanExecutor) Execute(operation MBeanOperation) (interface{}, error) {
+func (_m *MockBeanExecutor) Execute(operation Operation) (interface{}, error) {
 	ret := _m.Called(operation)
 
 	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(MBeanOperation) interface{}); ok {
+	if rf, ok := ret.Get(0).(func(Operation) interface{}); ok {
 		r0 = rf(operation)
 	} else {
 		if ret.Get(0) != nil {
@@ -23,7 +23,7 @@ func (_m *MockBeanExecutor) Execute(operation MBeanOperation) (interface{}, erro
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(MBeanOperation) error); ok {
+	if rf, ok := ret.Get(1).(func(Operation) error); ok {
 		r1 = rf(operation)
 	} else {
 		r1 = ret.Error(1)

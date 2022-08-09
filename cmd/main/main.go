@@ -23,11 +23,11 @@ func main() {
 		log.Panicf("failed to initialize the connection::%s", err.Error())
 	}
 
-	operation := mbean.MBeanOperation{
+	operation := mbean.Operation{
 		Domain:    "org.example",
 		Name:      "game",
 		Operation: "putString",
-		Args: []mbean.MBeanOperationArgs{
+		Args: []mbean.OperationArgs{
 			{
 				Value: "messi",
 				Type:  "java.lang.String",
@@ -40,11 +40,11 @@ func main() {
 	}
 	beanExecutor.Execute(operation)
 
-	operation = mbean.MBeanOperation{
+	operation = mbean.Operation{
 		Domain:    "org.example",
 		Name:      "game",
 		Operation: "getString",
-		Args: []mbean.MBeanOperationArgs{
+		Args: []mbean.OperationArgs{
 			{
 				Value: "messi",
 				Type:  "java.lang.String",
