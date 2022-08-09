@@ -1,4 +1,4 @@
-package java
+package jvm
 
 import (
 	"errors"
@@ -6,6 +6,28 @@ import (
 
 	"tekao.net/jnigi"
 )
+
+// the commonly used types
+const (
+	STRING  = "java/lang/String"
+	OBJECT  = "java/lang/Object"
+	LONG    = "java/lang/Long"
+	INTEGER = "java/lang/Integer"
+	BOOLEAN = "java/lang/Boolean"
+	FLOAT   = "java/lang/Float"
+	DOUBLE  = "java/lang/Double"
+)
+
+type Java struct {
+	Env     *jnigi.Env
+	jvm     *jnigi.JVM
+	started bool
+}
+
+type IJava interface {
+	CreateJvm() (*jnigi.Env, error)
+	ShutdownJvm() error
+}
 
 // CreateJVM will create a JVM for the consumer to execute against
 func CreateJvm() (*Java, error) {
@@ -26,7 +48,7 @@ func CreateJvm() (*Java, error) {
 	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
 
 	java.jvm = jvm
-	java.env = env
+	java.Env = env
 	java.started = true
 
 	return java, nil
@@ -43,13 +65,13 @@ func (java *Java) ShutdownJvm() error {
 	}
 
 	java.jvm = nil
-	java.env = nil
+	java.Env = nil
 
 	return nil
 }
 
-func (java *Java) createString(str string) (*jnigi.ObjectRef, error) {
-	fileNameRef, err := java.env.NewObject(STRING, []byte(str))
+func (java *Java) CreateString(str string) (*jnigi.ObjectRef, error) {
+	fileNameRef, err := java.Env.NewObject(STRING, []byte(str))
 	if err != nil {
 		return nil, fmt.Errorf("failed to turn %s into an object::%s", str, err.Error())
 	}
@@ -57,8 +79,8 @@ func (java *Java) createString(str string) (*jnigi.ObjectRef, error) {
 	return fileNameRef, nil
 }
 
-func (java *Java) createJavaNative(obj any, typeName string) (*jnigi.ObjectRef, error) {
-	ref, err := java.env.NewObject(typeName, obj)
+func (java *Java) CreateJavaNative(obj any, typeName string) (*jnigi.ObjectRef, error) {
+	ref, err := java.Env.NewObject(typeName, obj)
 	if err != nil {
 		return nil, fmt.Errorf("failed to turn %s into an object::%s", obj, err.Error())
 	}

@@ -3,6 +3,7 @@ package java
 import (
 	"errors"
 	"fmt"
+	"gmx/internal/jvm"
 	"strings"
 
 	"tekao.net/jnigi"
@@ -77,7 +78,7 @@ func toGoString(mbean *MBean, param *jnigi.ObjectRef, outputType string) (any, e
 }
 
 func fromJavaString(param *jnigi.ObjectRef, mbean *MBean, dest *[]byte) error {
-	if err := param.CallMethod(mbean.Java.env, "getBytes", dest); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "getBytes", dest); err != nil {
 		return errors.New("failed to convert response to a byte array::" + err.Error())
 	}
 
@@ -85,7 +86,7 @@ func fromJavaString(param *jnigi.ObjectRef, mbean *MBean, dest *[]byte) error {
 }
 
 func fromJavaLong(param *jnigi.ObjectRef, mbean *MBean, dest *int64) error {
-	if err := param.CallMethod(mbean.Java.env, "longValue", dest); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "longValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
 
@@ -93,7 +94,7 @@ func fromJavaLong(param *jnigi.ObjectRef, mbean *MBean, dest *int64) error {
 }
 
 func fromJavaDouble(param *jnigi.ObjectRef, mbean *MBean, dest *float64) error {
-	if err := param.CallMethod(mbean.Java.env, "doubleValue", dest); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "doubleValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
 
@@ -101,7 +102,7 @@ func fromJavaDouble(param *jnigi.ObjectRef, mbean *MBean, dest *float64) error {
 }
 
 func fromJavaFloat(param *jnigi.ObjectRef, mbean *MBean, dest *float32) error {
-	if err := param.CallMethod(mbean.Java.env, "floatValue", dest); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "floatValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
 
@@ -109,7 +110,7 @@ func fromJavaFloat(param *jnigi.ObjectRef, mbean *MBean, dest *float32) error {
 }
 
 func fromJavaBoolean(param *jnigi.ObjectRef, mbean *MBean, dest *bool) error {
-	if err := param.CallMethod(mbean.Java.env, "booleanValue", dest); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "booleanValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
 
@@ -117,7 +118,7 @@ func fromJavaBoolean(param *jnigi.ObjectRef, mbean *MBean, dest *bool) error {
 }
 
 func fromJavaInteger(param *jnigi.ObjectRef, mbean *MBean, dest *int) error {
-	if err := param.CallMethod(mbean.Java.env, "intValue", dest); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "intValue", dest); err != nil {
 		return errors.New("failed to create a integer::" + err.Error())
 	}
 
@@ -127,21 +128,21 @@ func fromJavaInteger(param *jnigi.ObjectRef, mbean *MBean, dest *int) error {
 func getClass(param *jnigi.ObjectRef, mbean *MBean) (string, error) {
 
 	cls := jnigi.NewObjectRef("java/lang/Class")
-	name := jnigi.NewObjectRef(STRING)
+	name := jnigi.NewObjectRef(jvm.STRING)
 
 	defer deleteReference(mbean, name)
 	defer deleteReference(mbean, cls)
 
-	if err := param.CallMethod(mbean.Java.env, "getClass", cls); err != nil {
+	if err := param.CallMethod(mbean.Java.Env, "getClass", cls); err != nil {
 		return "", errors.New("failed to call getClass::" + err.Error())
 	}
 
-	if err := cls.CallMethod(mbean.Java.env, "getSimpleName", name); err != nil {
+	if err := cls.CallMethod(mbean.Java.Env, "getSimpleName", name); err != nil {
 		return "", errors.New("failed to get class name::" + err.Error())
 	}
 
 	var bytes []byte
-	if err := name.CallMethod(mbean.Java.env, "getBytes", &bytes); err != nil {
+	if err := name.CallMethod(mbean.Java.Env, "getBytes", &bytes); err != nil {
 		return "", errors.New("failed to get byte representation::" + err.Error())
 	}
 

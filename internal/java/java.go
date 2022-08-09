@@ -6,31 +6,20 @@ import (
 	"tekao.net/jnigi"
 )
 
-type Java struct {
-	jvm     *jnigi.JVM
-	env     *jnigi.Env
-	started bool
-}
-
-type IJava interface {
-	CreateJvm() (*jnigi.Env, error)
-	ShutdownJvm() error
-}
-
 func (mbean *MBean) InitializeMBeanConnection(uri string) error {
 
 	jmxConnector, err := buildJMXConnector(mbean.Java, uri)
 
 	if err != nil {
 		if jmxConnector != nil {
-			closeReferences(mbean.Java.env, jmxConnector)
+			closeReferences(mbean.Java.Env, jmxConnector)
 		}
 		return err
 	}
 
 	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
 	err = jmxConnector.CallMethod(
-		mbean.Java.env,
+		mbean.Java.Env,
 		"getMBeanServerConnection",
 		mBeanServerConnector)
 

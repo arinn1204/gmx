@@ -1,17 +1,18 @@
 package java
 
 import (
+	"gmx/internal/jvm"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var java *Java
+var java *jvm.Java
 
 func TestMain(m *testing.M) {
 
-	java, _ = CreateJvm()
+	java, _ = jvm.CreateJvm()
 
 	if os.Getenv("TEST_ENV") == "IT" {
 		m.Run()

@@ -3,24 +3,14 @@ package java
 import (
 	"errors"
 	"fmt"
+	"gmx/internal/jvm"
 	"strings"
 
 	"tekao.net/jnigi"
 )
 
-// the commonly used types
-const (
-	STRING  = "java/lang/String"
-	OBJECT  = "java/lang/Object"
-	LONG    = "java/lang/Long"
-	INTEGER = "java/lang/Integer"
-	BOOLEAN = "java/lang/Boolean"
-	FLOAT   = "java/lang/Float"
-	DOUBLE  = "java/lang/Double"
-)
-
 type MBean struct {
-	Java             *Java
+	Java             *jvm.Java
 	serverConnection *jnigi.ObjectRef
 	jmxConnection    *jnigi.ObjectRef
 }
@@ -45,31 +35,31 @@ type BeanExecutor interface {
 
 func (mbean *MBean) Execute(operation MBeanOperation) (any, error) {
 
-	returnString := jnigi.NewObjectRef(OBJECT)
+	returnString := jnigi.NewObjectRef(jvm.OBJECT)
 	if err := invoke(operation, mbean, returnString); err != nil {
 		return "", err
 	}
 
-	return toGoString(mbean, returnString, STRING)
+	return toGoString(mbean, returnString, jvm.STRING)
 }
 
 func (mbean *MBean) Close() {
 	if mbean.Java == nil {
 		return
 	}
-	closeReferences(mbean.Java.env, mbean.jmxConnection)
+	closeReferences(mbean.Java.Env, mbean.jmxConnection)
 }
 
 func invoke(operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
-	objectParam, err := mbean.Java.createString(mbeanName)
+	objectParam, err := mbean.Java.CreateString(mbeanName)
 
 	defer deleteReference(mbean, objectParam)
 	if err != nil {
 		return err
 	}
 
-	objectName, err := mbean.Java.env.NewObject("javax/management/ObjectName", objectParam)
+	objectName, err := mbean.Java.Env.NewObject("javax/management/ObjectName", objectParam)
 	defer deleteReference(mbean, objectName)
 	if err != nil {
 		return errors.New("failed to create ObjectName::" + err.Error())
@@ -87,20 +77,20 @@ func invoke(operation MBeanOperation, mbean *MBean, outParam *jnigi.ObjectRef) e
 		return err
 	}
 
-	operationRef, err := mbean.Java.createString(operation.Operation)
+	operationRef, err := mbean.Java.CreateString(operation.Operation)
 	defer deleteReference(mbean, operationRef)
 	if err != nil {
 		return err
 	}
 
-	if err = mbean.serverConnection.CallMethod(mbean.Java.env, "invoke", outParam, objectName, operationRef, names, types); err != nil {
+	if err = mbean.serverConnection.CallMethod(mbean.Java.Env, "invoke", outParam, objectName, operationRef, names, types); err != nil {
 		return errors.New("failed to call invoke::" + err.Error())
 	}
 
 	return nil
 }
 
-func getNameArray(java *Java, args []MBeanOperationArgs) (*jnigi.ObjectRef, error) {
+func getNameArray(java *jvm.Java, args []MBeanOperationArgs) (*jnigi.ObjectRef, error) {
 	values := make([]any, 0)
 	classes := make([]string, 0)
 
@@ -109,22 +99,22 @@ func getNameArray(java *Java, args []MBeanOperationArgs) (*jnigi.ObjectRef, erro
 		classes = append(classes, arg.Type)
 	}
 
-	return getArray(java, values, classes, OBJECT)
+	return getArray(java, values, classes, jvm.OBJECT)
 }
 
-func getTypeArray(java *Java, args []MBeanOperationArgs) (*jnigi.ObjectRef, error) {
+func getTypeArray(java *jvm.Java, args []MBeanOperationArgs) (*jnigi.ObjectRef, error) {
 	types := make([]any, 0)
 	classes := make([]string, 0)
 
 	for _, arg := range args {
 		types = append(types, arg.Type)
-		classes = append(classes, STRING)
+		classes = append(classes, jvm.STRING)
 	}
 
-	return getArray(java, types, classes, STRING)
+	return getArray(java, types, classes, jvm.STRING)
 }
 
-func getArray(java *Java, values []any, classes []string, className string) (*jnigi.ObjectRef, error) {
+func getArray(java *jvm.Java, values []any, classes []string, className string) (*jnigi.ObjectRef, error) {
 
 	types := make([]*jnigi.ObjectRef, 0)
 	for i, value := range values {
@@ -133,10 +123,10 @@ func getArray(java *Java, values []any, classes []string, className string) (*jn
 
 		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
 
-		if jniClassPath == STRING {
-			obj, err = java.createString(value.(string))
+		if jniClassPath == jvm.STRING {
+			obj, err = java.CreateString(value.(string))
 		} else {
-			obj, err = java.createJavaNative(value, jniClassPath)
+			obj, err = java.CreateJavaNative(value, jniClassPath)
 		}
 
 		if err != nil {
@@ -146,5 +136,5 @@ func getArray(java *Java, values []any, classes []string, className string) (*jn
 		types = append(types, obj)
 	}
 
-	return java.env.ToObjectArray(types, className), nil
+	return java.Env.ToObjectArray(types, className), nil
 }

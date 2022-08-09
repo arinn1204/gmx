@@ -3,18 +3,19 @@ package java
 import (
 	"errors"
 	"fmt"
+	"gmx/internal/jvm"
 
 	"tekao.net/jnigi"
 )
 
-func buildJMXConnector(java *Java, jndiUri string) (*jnigi.ObjectRef, error) {
-	stringRef, err := java.env.NewObject("java/lang/String", []byte(jndiUri))
+func buildJMXConnector(java *jvm.Java, jndiUri string) (*jnigi.ObjectRef, error) {
+	stringRef, err := java.Env.NewObject("java/lang/String", []byte(jndiUri))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a string from %s::%s", jndiUri, err.Error())
 	}
 
-	jmxUrl, err := java.env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
+	jmxUrl, err := java.Env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
 	if err != nil {
 		return nil, errors.New("failed to create JMXServiceURL::" + err.Error())
 	}
@@ -25,7 +26,7 @@ func buildJMXConnector(java *Java, jndiUri string) (*jnigi.ObjectRef, error) {
 
 	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
 
-	err = java.env.CallStaticMethod(
+	err = java.Env.CallStaticMethod(
 		"javax/management/remote/JMXConnectorFactory",
 		"connect",
 		jmxConnector,
