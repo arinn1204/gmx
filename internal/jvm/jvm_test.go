@@ -29,31 +29,6 @@ func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-// func TestCanInitializeTheJVMMultipleTimes(t *testing.T) {
-// 	wg := &sync.WaitGroup{}
-// 	wg.Add(1)
-
-// 	go func() {
-// 		lockCurrentThread()
-// 		defer wg.Done()
-// 		defer unlockCurrentThread()
-// 		java.ShutdownJvm()
-// 	}()
-
-// 	wg.Add(1)
-// 	go func() {
-// 		lockCurrentThread()
-// 		defer wg.Done()
-// 		defer unlockCurrentThread()
-
-// 		_, err := CreateJvm()
-// 		assert.Nil(t, err)
-// 		java.ShutdownJvm()
-// 	}()
-
-// 	wg.Wait()
-// }
-
 func TestOnConnectionErrors(t *testing.T) {
 	lockCurrentThread()
 	defer unlockCurrentThread()
