@@ -22,12 +22,22 @@ vendor:
 test: clean
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=UT go test ./...
 
-integration_test: clean
-	docker rm --force jniexample 2>/dev/null
-	docker run -d -p 9001:9001 --name jniexample trixter1394/jniexample 2>/dev/null
+integration_test: clean jniexample secondary_example
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" TEST_ENV=IT go test ./...
 
-mocks:
+mocks: _mock_gen vendor
+
+_mock_gen:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" mockery --all --inpackage
-	go mod tidy
-	go mod vendor
+
+secondary_example: name=jniexample2
+secondary_example: port=9002
+secondary_example: example
+
+jniexample: name=jniexample
+jniexample: port=9001
+jniexample: example
+
+example:
+	docker rm --force $(name) 2>/dev/null
+	docker run -d -p $(port):9001 --name $(name) trixter1394/jniexample
