@@ -3,6 +3,7 @@ module gmx
 go 1.19
 
 require (
+	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.0
 	tekao.net/jnigi v0.0.0-20220804033536-1481db6c0949
 )
