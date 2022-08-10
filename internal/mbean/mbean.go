@@ -59,6 +59,9 @@ type BeanExecutor interface {
 	Close()
 }
 
+// Close is a method that will clean up all of the MBeans resources
+// It will close the JMX method within the JVM as well as deleting the connection
+// from the JNI resources
 func (mbean *Client) Close() {
 	defer mbean.Env.DeleteLocalRef(mbean.JmxConnection)
 	mbean.JmxConnection.CallMethod(mbean.Env, "close", nil)

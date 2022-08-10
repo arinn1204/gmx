@@ -29,21 +29,27 @@ func (client *Client) Initialize() error {
 	return nil
 }
 
-func (client *Client) Connect(hostname string, port int) (uuid.UUID, error) {
-	jmxUri := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
-	bean, err := java.CreateMBeanConnection(jmxUri)
+// Connect is the initializing method for the MBean itself. It will
+// connect to the remote server and assign the given connection a UUID.
+// The GMX client will store references to MBean clients, the UUID's will be
+// helpful if wanting to be able to tell which MBeans go to which location
+func (client *Client) Connect(hostname string, port int) (*uuid.UUID, error) {
+	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
+	bean, err := java.CreateMBeanConnection(jmxURI)
 
 	if err != nil {
-		return uuid.UUID{}, errors.New("failed to create a connection::" + err.Error())
+		return nil, errors.New("failed to create a connection::" + err.Error())
 	}
 
 	id := uuid.New()
 
 	client.mbeans[id] = bean
 
-	return id, nil
+	return &id, nil
 }
 
+// Close is a method that will close the connection. It will free up any resources
+// that the GMX client is still holding on as well as shutting down the JVM
 func (client *Client) Close() {
 	for uri := range client.mbeans {
 		client.mbeans[uri].Close()
