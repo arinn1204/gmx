@@ -14,46 +14,22 @@ func (_m *MockMBeanOperator) Close() {
 	_m.Called()
 }
 
-// GetString provides a mock function with given fields: domain, beanName, operation, argName
-func (_m *MockMBeanOperator) GetString(domain string, beanName string, operation string, argName string) (string, error) {
-	ret := _m.Called(domain, beanName, operation, argName)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, string) string); ok {
-		r0 = rf(domain, beanName, operation, argName)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
-		r1 = rf(domain, beanName, operation, argName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Initialize provides a mock function with given fields:
-func (_m *MockMBeanOperator) Initialize() {
-	_m.Called()
-}
+func (_m *MockMBeanOperator) Initialize() (*Client, error) {
+	ret := _m.Called()
 
-// PutString provides a mock function with given fields: domain, name, operation, argName, arvValue
-func (_m *MockMBeanOperator) PutString(domain string, name string, operation string, argName string, arvValue string) (string, error) {
-	ret := _m.Called(domain, name, operation, argName, arvValue)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string) string); ok {
-		r0 = rf(domain, name, operation, argName, arvValue)
+	var r0 *Client
+	if rf, ok := ret.Get(0).(func() *Client); ok {
+		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Client)
+		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, string, string) error); ok {
-		r1 = rf(domain, name, operation, argName, arvValue)
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}

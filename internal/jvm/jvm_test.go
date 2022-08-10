@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
-	_, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	_, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
 	assert.Nil(t, err)
 }
 
@@ -116,7 +116,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 
 		lockCurrentThread(java)
 		defer unlockCurrentThread(java)
-		mbean, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+		mbean, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
 		assert.Nil(t, err)
 
 		testData := testDataContainer{

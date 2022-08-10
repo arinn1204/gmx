@@ -8,6 +8,7 @@ import (
 	"tekao.net/jnigi"
 )
 
+// Java is the structure that will contain JVM pertinent information.
 type Java struct {
 	Env     *jnigi.Env
 	jvm     *jnigi.JVM
@@ -15,6 +16,9 @@ type Java struct {
 	beans   []*mbean.Client
 }
 
+// IJava is the interface that wraps around the JVM.
+// It allows for creation and cleanup. Only one JVM needs to be started.
+// It can then be shared out between goroutines to do with as needed
 type IJava interface {
 	CreateJvm() (*Java, error)
 	ShutdownJvm() error

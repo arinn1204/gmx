@@ -1,0 +1,12 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  jnixample:
+    image: trixter1394/jniexample
+    ports:
+    - 9001:9001
+  jnixample2:
+    image: trixter1394/jniexample
+    environment:
+      JMX_PORT: 5001
+    ports:
+    - 5001:5001
