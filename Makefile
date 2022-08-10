@@ -13,7 +13,7 @@ build:
 
 clean:
 	go clean
-	rm gmx  2>/dev/null || exit 0
+	@rm gmx  2>/dev/null || exit 0
 
 vendor:
 	go mod tidy

@@ -4,9 +4,4 @@ services:
     image: trixter1394/jniexample
     ports:
     - 9001:9001
-  jnixample2:
-    image: trixter1394/jniexample
-    environment:
-      JMX_PORT: 5001
-    ports:
-    - 5001:5001
+    - 5001:9001
