@@ -14,6 +14,11 @@ func (_m *MockMBeanOperator) Close() {
 	_m.Called()
 }
 
+// Connect provides a mock function with given fields: hostname, port
+func (_m *MockMBeanOperator) Connect(hostname string, port int) {
+	_m.Called(hostname, port)
+}
+
 // Initialize provides a mock function with given fields:
 func (_m *MockMBeanOperator) Initialize() (*Client, error) {
 	ret := _m.Called()
