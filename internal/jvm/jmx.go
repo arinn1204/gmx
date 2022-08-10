@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"gmx/internal/mbean"
-	"runtime"
 
 	"tekao.net/jnigi"
 )
@@ -12,10 +11,9 @@ import (
 // CreateMBeanConnection is the factory method responsible for creating MBean connections based on the provided URI
 // They can be created multiple per thread, or in parallel threads. They are bound to OS threads
 // They should be used with caution for this reason
-func CreateMBeanConnection(java *Java, uri string) (*mbean.Client, error) {
+func (java *Java) CreateMBeanConnection(uri string) (*mbean.Client, error) {
 
-	runtime.LockOSThread()
-	env := java.jvm.AttachCurrentThread()
+	env := java.Attach()
 	configureEnvironment(env)
 
 	jmxConnector, err := buildJMXConnector(env, uri)

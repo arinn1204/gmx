@@ -2,7 +2,7 @@ package jvm
 
 import (
 	"gmx/internal/mbean"
-	"os"
+	"log"
 	"runtime"
 	"sync"
 	"testing"
@@ -14,33 +14,46 @@ import (
 var java *Java
 
 func TestMain(m *testing.M) {
-	java, _ = CreateJVM()
+	java = &Java{}
+	_, err := java.CreateJVM()
 
-	if os.Getenv("TEST_ENV") == "IT" {
-		m.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	m.Run()
 
 	java.ShutdownJvm()
 }
 
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
+
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
-	_, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
+	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
 	assert.Nil(t, err)
 }
 
 func TestOnConnectionErrors(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
-	_, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9901/jmxrmi")
+	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9901/jmxrmi")
 
 	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
 	assert.Equal(t, expected, err.Error())
 }
 
 func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
@@ -48,10 +61,10 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	var mbean1 *mbean.Client
 	var mbean2 *mbean.Client
 
-	mbean1, err = CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	mbean1, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
 
-	mbean2, err = CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	mbean2, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
 
 	testData := []testDataContainer{
@@ -83,6 +96,9 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 }
 
 func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
 	wg := &sync.WaitGroup{}
 
 	lockCurrentThread(java)
@@ -94,7 +110,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 		lockCurrentThread(java)
 		defer unlockCurrentThread(java)
 
-		mbean, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 		assert.Nil(t, err)
 
 		testData := testDataContainer{
@@ -116,7 +132,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 
 		lockCurrentThread(java)
 		defer unlockCurrentThread(java)
-		mbean, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
+		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
 		assert.Nil(t, err)
 
 		testData := testDataContainer{
@@ -149,6 +165,9 @@ type testDataContainer struct {
 }
 
 func TestCanCallIntoJmxAndGetResult(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
 
 	container := []testDataContainer{
 		{
@@ -199,7 +218,7 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			lockCurrentThread(java)
 			defer unlockCurrentThread(java)
 
-			mbean, err := CreateMBeanConnection(java, "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
 
 			insertData(java.Env, *data.initialData, t, mbean)

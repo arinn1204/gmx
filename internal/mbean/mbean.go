@@ -51,8 +51,17 @@ type OperationArgs struct {
 // BeanExecutor is the interface used around this package.
 // This is how an execution is performed.
 // This will always rely on the MBean Client's environment
+// Close will handle any types of cleanup that is related directly to MBean operations
+//
+// for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
 	Execute(operation Operation) (any, error)
+	Close()
+}
+
+func (mbean *Client) Close() {
+	defer mbean.Env.DeleteLocalRef(mbean.JmxConnection)
+	mbean.JmxConnection.CallMethod(mbean.Env, "close", nil)
 }
 
 // Execute is the orchestration for a JMX command execution.
