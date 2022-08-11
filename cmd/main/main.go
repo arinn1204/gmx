@@ -37,7 +37,9 @@ func validateArgs() {
 		log.Fatal("did not receive a domain to operation")
 	}
 
-	if (args != nil && types == nil) || (args == nil && types != nil) || (strings.Count(*args, ",") != strings.Count(*types, ",")) {
+	if (args != nil && types == nil) ||
+		(args == nil && types != nil) ||
+		(strings.Count(*args, ",") != strings.Count(*types, ",")) {
 		log.Fatal("must provide types for all the args provided")
 	}
 }
