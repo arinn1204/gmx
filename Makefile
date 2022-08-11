@@ -7,7 +7,7 @@ JAVAC				:= javac
 
 build:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -o gmx
-	chmod +x ./gmx
+	@chmod +x ./gmx
 
 clean:
 	go clean
