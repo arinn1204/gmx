@@ -61,8 +61,8 @@ type BeanExecutor interface {
 }
 
 // GetEnv will expose the underlying environment that the client is associated with
-func (client *Client) GetEnv() *jnigi.Env {
-	return client.Env
+func (mbean *Client) GetEnv() *jnigi.Env {
+	return mbean.Env
 }
 
 // Close is a method that will clean up all of the MBeans resources
