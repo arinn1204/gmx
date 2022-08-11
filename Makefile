@@ -23,7 +23,6 @@ lint:
 test: clean
 	CGO_CFLAGS="$(CGO_CFLAGS)" TEST_ENV=$(TEST_ENV) go test --short ./...
 
-integration_test: TEST_ENV=IT 
 integration_test: jniexample clean
 	go clean -testcache
 	CGO_CFLAGS="$(CGO_CFLAGS)" TEST_ENV=$(TEST_ENV) go test  ./...
