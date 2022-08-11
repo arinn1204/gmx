@@ -11,7 +11,7 @@ import (
 // CreateMBeanConnection is the factory method responsible for creating MBean connections based on the provided URI
 // They can be created multiple per thread, or in parallel threads. They are bound to OS threads
 // They should be used with caution for this reason
-func (java *Java) CreateMBeanConnection(uri string) (*mbean.Client, error) {
+func (java *Java) CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) {
 
 	env := java.Attach()
 	configureEnvironment(env)

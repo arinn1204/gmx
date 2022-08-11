@@ -58,8 +58,8 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	defer unlockCurrentThread(java)
 
 	var err error
-	var mbean1 *mbean.Client
-	var mbean2 *mbean.Client
+	var mbean1 mbean.BeanExecutor
+	var mbean2 mbean.BeanExecutor
 
 	mbean1, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
@@ -84,13 +84,13 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 
 	var res any
 
-	insertData(mbean1.Env, *testData[0].initialData, t, mbean1)
-	res = readData(mbean1.Env, *testData[0].readData, t, mbean1)
+	insertData(mbean1.GetEnv(), *testData[0].initialData, t, mbean1)
+	res = readData(mbean1.GetEnv(), *testData[0].readData, t, mbean1)
 
 	assert.Equal(t, testData[0].expectedVal, res)
 
-	insertData(mbean2.Env, *testData[1].initialData, t, mbean2)
-	res = readData(mbean2.Env, *testData[1].readData, t, mbean2)
+	insertData(mbean1.GetEnv(), *testData[1].initialData, t, mbean2)
+	res = readData(mbean2.GetEnv(), *testData[1].readData, t, mbean2)
 
 	assert.Equal(t, testData[1].expectedVal, res)
 }
@@ -120,8 +120,8 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 			expectedVal: "fan369",
 		}
 
-		insertData(mbean.Env, *testData.initialData, t, mbean)
-		res := readData(mbean.Env, *testData.readData, t, mbean)
+		insertData(mbean.GetEnv(), *testData.initialData, t, mbean)
+		res := readData(mbean.GetEnv(), *testData.readData, t, mbean)
 
 		assert.Equal(t, testData.expectedVal, res)
 	}(t, wg)
@@ -142,8 +142,8 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 			expectedVal: int64(2148493647),
 		}
 
-		insertData(mbean.Env, *testData.initialData, t, mbean)
-		res := readData(mbean.Env, *testData.readData, t, mbean)
+		insertData(mbean.GetEnv(), *testData.initialData, t, mbean)
+		res := readData(mbean.GetEnv(), *testData.readData, t, mbean)
 
 		assert.Equal(t, testData.expectedVal, res)
 	}(t, wg)
@@ -228,7 +228,7 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 	}
 }
 
-func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) any {
+func readData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExecutor) any {
 
 	operation := mbean.Operation{
 		Domain:    "org.example",
@@ -248,7 +248,7 @@ func readData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) a
 	return result
 }
 
-func insertData(env *jnigi.Env, data testData, t *testing.T, bean *mbean.Client) {
+func insertData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExecutor) {
 	operation := mbean.Operation{
 		Domain:    "org.example",
 		Name:      "game",
