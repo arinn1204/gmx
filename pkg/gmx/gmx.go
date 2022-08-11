@@ -10,7 +10,7 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type Client struct {
-	mbeans map[uuid.UUID]*mbean.Client // The map of underlying clients. The map is identified as id -> client
+	mbeans map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
 }
 
 // MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI

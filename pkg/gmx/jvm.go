@@ -24,7 +24,7 @@ func init() {
 func (client *Client) Initialize() error {
 	startJvm()
 
-	client.mbeans = make(map[uuid.UUID]*mbean.Client)
+	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
 
 	return nil
 }
