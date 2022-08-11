@@ -21,7 +21,7 @@ type Java struct {
 // It allows for creation and cleanup. Only one JVM needs to be started.
 // It can then be shared out between goroutines to do with as needed
 type IJava interface {
-	CreateJVM() (*Java, error)                                    // Will create and start the JVM for any JNI threads to communicate with
+	CreateJVM() (IJava, error)                                    // Will create and start the JVM for any JNI threads to communicate with
 	ShutdownJvm() error                                           // Will cleanup any threads remaining and close the JVM
 	Attach() *jnigi.Env                                           // Will attach the current running thread to the JVM
 	IsStarted() bool                                              // A simple flag indicating whether or not the JVM has started running
@@ -42,7 +42,7 @@ func (java *Java) IsStarted() bool {
 }
 
 // CreateJVM will create a JVM for the consumer to execute against
-func (java *Java) CreateJVM() (*Java, error) {
+func (java *Java) CreateJVM() (IJava, error) {
 
 	if java.IsStarted() {
 		log.Fatal("The JVM has already been started.")
