@@ -6,7 +6,8 @@ JAVAC				:= javac
 .PHONY: build clean vendor test integration_test mocks jniexample
 
 build:
-	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -o gmx ./cmd/main 
+	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -o gmx
+	chmod +x ./gmx
 
 clean:
 	go clean
