@@ -1,4 +1,4 @@
-module gmx
+module github.com/arinn1204/gmx
 
 go 1.19
 
