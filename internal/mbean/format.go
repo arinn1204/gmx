@@ -10,7 +10,7 @@ import (
 
 func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any, error) {
 	if param.IsNil() {
-		return "NIL", nil
+		return "", nil
 	}
 
 	var bytes []byte
