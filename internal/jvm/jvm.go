@@ -2,9 +2,10 @@ package jvm
 
 import (
 	"errors"
-	"gmx/internal/mbean"
 	"log"
 	"runtime"
+
+	"github.com/arinn1204/gmx/internal/mbean"
 
 	"tekao.net/jnigi"
 )

@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gmx/pkg/gmx"
 	"log"
 	"strings"
+
+	"github.com/arinn1204/gmx/pkg/gmx"
 )
 
 var (

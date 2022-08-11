@@ -3,7 +3,8 @@ package jvm
 import (
 	"errors"
 	"fmt"
-	"gmx/internal/mbean"
+
+	"github.com/arinn1204/gmx/internal/mbean"
 
 	"tekao.net/jnigi"
 )

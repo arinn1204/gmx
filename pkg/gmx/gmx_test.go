@@ -2,8 +2,9 @@ package gmx
 
 import (
 	"fmt"
-	"gmx/internal/mbean"
 	"testing"
+
+	"github.com/arinn1204/gmx/internal/mbean"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

@@ -3,10 +3,12 @@ package gmx
 import (
 	"errors"
 	"fmt"
-	"gmx/internal/jvm"
-	"gmx/internal/mbean"
 	"log"
 	"sync"
+
+	"github.com/arinn1204/gmx/internal/mbean"
+
+	"github.com/arinn1204/gmx/internal/jvm"
 
 	"github.com/google/uuid"
 )

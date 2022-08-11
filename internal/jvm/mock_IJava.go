@@ -3,7 +3,7 @@
 package jvm
 
 import (
-	mbean "gmx/internal/mbean"
+	mbean "github.com/arinn1204/gmx/internal/mbean"
 
 	jnigi "tekao.net/jnigi"
 

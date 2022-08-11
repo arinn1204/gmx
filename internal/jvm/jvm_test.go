@@ -1,11 +1,12 @@
 package jvm
 
 import (
-	"gmx/internal/mbean"
 	"log"
 	"runtime"
 	"sync"
 	"testing"
+
+	"github.com/arinn1204/gmx/internal/mbean"
 
 	"github.com/stretchr/testify/assert"
 	"tekao.net/jnigi"

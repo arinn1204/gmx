@@ -1,7 +1,7 @@
 package gmx
 
 import (
-	"gmx/internal/mbean"
+	"github.com/arinn1204/gmx/internal/mbean"
 
 	"github.com/google/uuid"
 )
