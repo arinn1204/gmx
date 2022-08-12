@@ -99,3 +99,29 @@ func TestConnect_ConnectFails(t *testing.T) {
 
 	assert.Equal(t, errors.New("failed to create a connection::something went wrong"), err)
 }
+
+func TestClose_WithConnections(t *testing.T) {
+	mockJVM := &jvm.MockIJava{}
+
+	mockJVM.On("ShutdownJvm").Return(nil)
+
+	java = mockJVM
+
+	client := &Client{
+		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
+	}
+
+	id := uuid.New()
+	mockBean := mbean.MockBeanExecutor{}
+
+	mockBean.On("Close").Once()
+
+	client.mbeans[id] = &mockBean
+
+	client.Close()
+
+	assert.Nil(t, client.mbeans[id])
+
+	mockBean.AssertCalled(t, "Close")
+	mockJVM.AssertCalled(t, "ShutdownJvm")
+}
