@@ -170,6 +170,8 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 		t.Skip("Skipping Integration tests when running short mode")
 	}
 
+	list := []int{1, 2, 3, 4, 5}
+
 	container := []testDataContainer{
 		{
 			initialData: &testData{value: "fan369", className: "java.lang.String", operationName: "putString"},
@@ -208,6 +210,12 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			readData:    &testData{value: "messi", operationName: "getBoolean"},
 			testName:    "BooleanTesting",
 			expectedVal: true,
+		},
+		{
+			initialData: &testData{value: list, className: "java.util.List", operationName: "putList"},
+			readData:    &testData{value: "messi", operationName: "getList"},
+			testName:    "ListTesting",
+			expectedVal: list,
 		},
 	}
 

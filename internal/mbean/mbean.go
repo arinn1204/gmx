@@ -18,6 +18,8 @@ const (
 	BOOLEAN = "java/lang/Boolean"
 	FLOAT   = "java/lang/Float"
 	DOUBLE  = "java/lang/Double"
+	LIST    = "java/util/List"
+	MAP     = "java/util/Map"
 )
 
 // Client is the overarching type that will facilitate JMX connections
@@ -100,13 +102,20 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 	}
 
 	names, err := getNameArray(env, operation.Args)
-	defer env.DeleteLocalRef(names)
+	if names != nil {
+		defer env.DeleteLocalRef(names)
+	}
+
 	if err != nil {
 		return err
 	}
 
 	types, err := getTypeArray(env, operation.Args)
-	defer env.DeleteLocalRef(types)
+
+	if types != nil {
+		defer env.DeleteLocalRef(types)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -165,6 +174,10 @@ func getArray(env *jnigi.Env, values []any, classes []string, className string) 
 
 		if jniClassPath == STRING {
 			obj, err = createString(env, value.(string))
+		} else if jniClassPath == LIST {
+			obj, err = createJavaList(env, value.([]any))
+		} else if jniClassPath == MAP {
+			obj, err = createJavaMap(env, value.(map[any]any))
 		} else {
 			obj, err = createJavaNative(env, value, jniClassPath)
 		}
