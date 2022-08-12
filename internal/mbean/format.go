@@ -69,6 +69,22 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 		}
 
 		result = res
+	} else if strings.EqualFold(clazz, "List") {
+		res := make([]any, 0)
+
+		if err := createGoArray(param, env, &res); err != nil {
+			return "", err
+		}
+
+		result = res
+	} else if strings.EqualFold(clazz, "Map") {
+		res := make(map[any]any)
+
+		if err := createGoMap(param, env, &res); err != nil {
+			return "", err
+		}
+
+		result = res
 	} else {
 		return "", fmt.Errorf("type of %s does not have a defined handler", clazz)
 	}
