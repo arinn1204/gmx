@@ -34,3 +34,5 @@ gmx
 
 !pkg/*
 java/JNIConnector.class.go
+
+dist/

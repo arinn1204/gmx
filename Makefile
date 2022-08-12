@@ -1,6 +1,7 @@
 INCLUDEFLAGS		:= -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
+LINKERFLAGS 		:= -L$(JAVA_HOME)/lib/server -L$(JAVA_HOME)/lib -ljvm
 CGO_CFLAGS       	:= $(INCLUDEFLAGS)
-
+CGO_LDFLAGS 		:= $(LINKERFLAGS)
 JAVAC				:= javac
 
 .PHONY: build clean vendor test integration_test mocks jniexample
@@ -11,7 +12,11 @@ build:
 
 clean:
 	go clean
+	@rm -r dist
 	@rm gmx  2>/dev/null || exit 0
+
+snapshot:
+	goreleaser release --snapshot --rm-dist
 
 vendor:
 	go mod tidy
@@ -22,7 +27,7 @@ lint:
 	golint -set_exit_status cmd/... internal/... pkg/...
 
 test: clean
-	CGO_CFLAGS="$(CGO_CFLAGS)" TEST_ENV=$(TEST_ENV) go test --short ./...
+	CGO_CFLAGS="$(CGO_CFLAGS)" go test --short ./...
 
 integration_test: jniexample clean
 	go clean -testcache
