@@ -1,10 +1,12 @@
-INCLUDEFLAGS		:= -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
+INCLUDEFLAGS		:= -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OSNAME)
 LINKERFLAGS 		:= -L$(JAVA_HOME)/lib/server -L$(JAVA_HOME)/lib -ljvm
 CGO_CFLAGS       	:= $(INCLUDEFLAGS)
 CGO_LDFLAGS 		:= $(LINKERFLAGS)
 JAVAC				:= javac
 
 .PHONY: build clean vendor test integration_test mocks jniexample
+
+all: clean vendor integration_test stop build
 
 build:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go build -o gmx
