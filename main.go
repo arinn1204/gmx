@@ -13,11 +13,15 @@ var (
 	domain    *string
 	name      *string
 	operation *string
+	hostname  *string
+	port      *int
 	args      *string
 	types     *string
 )
 
 func init() {
+	hostname = flag.String("hostname", "", "[Required] The hostname or IP of the JMX RMI server")
+	port = flag.Int("port", 0, "[Required] The port of the JMX RMI server")
 	domain = flag.String("domain", "", "[Required] The domain for the mbean")
 	name = flag.String("name", "", "[Required] The name of the mbean itself")
 	operation = flag.String("operation", "", "[Required] The operation that is being executed")
@@ -25,21 +29,19 @@ func init() {
 	types = flag.String("types", "", "[Optional] The comma separated types that correspond with the arguments passed in")
 }
 
+func exit(predicate func() bool) {
+	if predicate() {
+		flag.Usage()
+		os.Exit(1)
+	}
+}
+
 func validateArgs() {
-	if domain == nil || *domain == "" {
-		flag.Usage()
-		os.Exit(0)
-	}
-
-	if name == nil || *name == "" {
-		flag.Usage()
-		os.Exit(0)
-	}
-
-	if operation == nil || *operation == "" {
-		flag.Usage()
-		os.Exit(0)
-	}
+	exit(func() bool { return domain == nil || *domain == "" })
+	exit(func() bool { return name == nil || *name == "" })
+	exit(func() bool { return operation == nil || *operation == "" })
+	exit(func() bool { return hostname == nil || *hostname == "" })
+	exit(func() bool { return port == nil || *port == 0 })
 
 	if (args != nil && types == nil) ||
 		(args == nil && types != nil) ||
