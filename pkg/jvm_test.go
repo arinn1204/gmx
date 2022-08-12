@@ -39,3 +39,23 @@ func TestInitialize_SimulatedRaceCondition(t *testing.T) {
 	mockJava.AssertNumberOfCalls(t, "IsStarted", 2)
 	mockJava.AssertNotCalled(t, "CreateJVM")
 }
+
+func TestInitialize_OnlyEverCalledOnce(t *testing.T) {
+	mockJava := &jvm.MockIJava{}
+
+	mockJava.On("CreateJVM").Return(mockJava, nil)
+
+	mockJava.On("IsStarted").Return(false).Once()
+	mockJava.On("IsStarted").Return(false).Once()
+	mockJava.On("IsStarted").Return(true).Once()
+	java = mockJava
+
+	client := &Client{}
+
+	//can't really do true parallel testing with a mock jvm
+	client.Initialize()
+	client.Initialize()
+
+	mockJava.AssertNumberOfCalls(t, "IsStarted", 3)
+	mockJava.AssertNumberOfCalls(t, "CreateJVM", 1)
+}
