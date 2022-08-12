@@ -1,9 +1,13 @@
 package gmx
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/arinn1204/gmx/internal/jvm"
+	"github.com/arinn1204/gmx/internal/mbean"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInitialize_CalledFirstTime(t *testing.T) {
@@ -58,4 +62,40 @@ func TestInitialize_OnlyEverCalledOnce(t *testing.T) {
 
 	mockJava.AssertNumberOfCalls(t, "IsStarted", 3)
 	mockJava.AssertNumberOfCalls(t, "CreateJVM", 1)
+}
+
+func TestConnect_HappyPath(t *testing.T) {
+	mockJava := &jvm.MockIJava{}
+	mockExecutor := &mbean.MockBeanExecutor{}
+	mockJava.On("CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi").Return(mockExecutor, nil)
+
+	java = mockJava
+
+	client := &Client{
+		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
+	}
+
+	id, err := client.Connect("localhost", 9001)
+
+	assert.Nil(t, err)
+	mockJava.AssertCalled(t, "CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi")
+
+	assert.Equal(t, client.mbeans[*id], mockExecutor)
+}
+
+func TestConnect_ConnectFails(t *testing.T) {
+	mockJava := &jvm.MockIJava{}
+	mockJava.On("CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi").Return(nil, errors.New("something went wrong"))
+
+	java = mockJava
+
+	client := &Client{
+		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
+	}
+
+	id, err := client.Connect("localhost", 9001)
+
+	assert.Nil(t, id)
+
+	assert.Equal(t, errors.New("failed to create a connection::something went wrong"), err)
 }

@@ -67,6 +67,7 @@ func startJvm() {
 	}
 
 	lock.Lock()
+	defer lock.Unlock()
 	if java.IsStarted() {
 		return
 	}
