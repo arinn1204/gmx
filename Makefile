@@ -16,7 +16,7 @@ clean:
 	@rm gmx  2>/dev/null || exit 0
 
 snapshot:
-	goreleaser release --snapshot --rm-dist
+	goreleaser release --snapshot --rm-dist -f .mac.goreleaser.yaml
 
 vendor:
 	go mod tidy
