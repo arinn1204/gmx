@@ -58,8 +58,16 @@ type OperationArgs struct {
 // for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
 	Execute(operation Operation) (string, error)
+	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
 	Close()
+}
+
+func (mbean *Client) WithEnvironment(env *jnigi.Env) BeanExecutor {
+	return &Client{
+		JmxConnection: mbean.JmxConnection,
+		Env:           env,
+	}
 }
 
 // GetEnv will expose the underlying environment that the client is associated with

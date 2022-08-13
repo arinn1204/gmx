@@ -24,6 +24,7 @@ type IJava interface {
 	CreateJVM() (IJava, error)                                    // Will create and start the JVM for any JNI threads to communicate with
 	ShutdownJvm() error                                           // Will cleanup any threads remaining and close the JVM
 	Attach() *jnigi.Env                                           // Will attach the current running thread to the JVM
+	Detach()                                                      // Will detach the current thread from the JNI environment
 	IsStarted() bool                                              // A simple flag indicating whether or not the JVM has started running
 	CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) // The factory method for all bean connections
 }
@@ -34,6 +35,11 @@ type IJava interface {
 func (java *Java) Attach() *jnigi.Env {
 	runtime.LockOSThread()
 	return configureEnvironment(java.jvm.AttachCurrentThread())
+}
+
+func (java *Java) Detach() {
+	runtime.UnlockOSThread()
+	java.jvm.DetachCurrentThread()
 }
 
 // IsStarted will indicate whether or not the JVM has already been started

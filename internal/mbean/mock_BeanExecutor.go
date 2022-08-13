@@ -54,6 +54,22 @@ func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 	return r0
 }
 
+// WithEnvironment provides a mock function with given fields: env
+func (_m *MockBeanExecutor) WithEnvironment(env *jnigi.Env) BeanExecutor {
+	ret := _m.Called(env)
+
+	var r0 BeanExecutor
+	if rf, ok := ret.Get(0).(func(*jnigi.Env) BeanExecutor); ok {
+		r0 = rf(env)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(BeanExecutor)
+		}
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewMockBeanExecutor interface {
 	mock.TestingT
 	Cleanup(func())

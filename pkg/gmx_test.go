@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/arinn1204/gmx/internal/jvm"
 	"github.com/arinn1204/gmx/internal/mbean"
+	"tekao.net/jnigi"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -15,6 +17,15 @@ func TestExecuteAgainstID(t *testing.T) {
 
 	mbeans := make(map[uuid.UUID]mbean.BeanExecutor)
 	executor := &mbean.MockBeanExecutor{}
+
+	mockJava := jvm.MockIJava{}
+
+	env := &jnigi.Env{}
+
+	mockJava.On("Attach").Return(env)
+	mockJava.On("Detach").Return(nil)
+
+	java = &mockJava
 
 	for i := range []int{0, 1, 2} {
 
@@ -41,6 +52,7 @@ func TestExecuteAgainstID(t *testing.T) {
 		}
 
 		executor.On("Execute", expected).Return("hello", nil)
+		executor.On("WithEnvironment", env).Return(executor)
 
 		mbeans[id] = executor
 
@@ -59,6 +71,14 @@ func TestExecuteAgainstID(t *testing.T) {
 }
 
 func TestExecuteAgainstAll(t *testing.T) {
+	mockJava := jvm.MockIJava{}
+
+	env := &jnigi.Env{}
+
+	mockJava.On("Attach").Return(env)
+	mockJava.On("Detach").Return(nil)
+
+	java = &mockJava
 	expectedOperation := make(map[uuid.UUID]mbean.Operation)
 	operation := mbean.Operation{
 		Domain:    "com.google",
@@ -73,9 +93,11 @@ func TestExecuteAgainstAll(t *testing.T) {
 	expectedOperation[locationId] = operation
 
 	gameExecutor := mbean.MockBeanExecutor{}
+	gameExecutor.On("WithEnvironment", env).Return(&gameExecutor)
 	gameExecutor.On("Execute", operation).Return("NV", nil)
 
 	locationExecutor := mbean.MockBeanExecutor{}
+	locationExecutor.On("WithEnvironment", env).Return(&locationExecutor)
 	locationExecutor.On("Execute", operation).Return("CA", nil)
 
 	mbeans := make(map[uuid.UUID]mbean.BeanExecutor)

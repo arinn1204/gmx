@@ -1,6 +1,8 @@
 package gmx
 
 import (
+	"sync"
+
 	"github.com/arinn1204/gmx/internal/mbean"
 
 	"github.com/google/uuid"
@@ -44,16 +46,46 @@ type MBeanArgs struct {
 	JavaType string
 }
 
+type batchExecutionResult struct {
+	id     uuid.UUID
+	result string
+	err    error
+}
+
 // ExecuteAgainstAll will execute a single command against every mbean that is currently registered.
 // This will return a mapping of all results and errors, based on the UUID that the connection has been assigned.
 func (client *Client) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
+	results := make(chan batchExecutionResult, len(client.mbeans))
+	wg := &sync.WaitGroup{}
+
+	for id := range client.mbeans {
+
+		wg.Add(1)
+		func(id uuid.UUID) {
+			defer wg.Done()
+			res, err := client.ExecuteAgainstID(id, domain, name, operation, args...)
+			result := batchExecutionResult{
+				id:     id,
+				result: res,
+				err:    err,
+			}
+
+			results <- result
+
+		}(id)
+
+	}
+
+	wg.Wait()
+
 	result := make(map[uuid.UUID]string)
 	receivedErrors := make(map[uuid.UUID]error)
 
-	for id := range client.mbeans {
-		res, err := client.ExecuteAgainstID(id, domain, name, operation, args...)
-		result[id] = res
-		receivedErrors[id] = err
+	for i := 0; i < len(client.mbeans); i++ {
+		res := <-results
+
+		result[res.id] = res.result
+		receivedErrors[res.id] = res.err
 	}
 
 	return result, receivedErrors
@@ -62,7 +94,10 @@ func (client *Client) ExecuteAgainstAll(domain string, name string, operation st
 // ExecuteAgainstID is a method that will take a given operation and MBean ID and make the JMX request.
 // It will return whatever is returned downstream, errors and all
 func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error) {
-	bean := client.mbeans[id]
+	env := java.Attach()
+	defer java.Detach()
+
+	bean := client.mbeans[id].WithEnvironment(env)
 
 	operationArgs := make([]mbean.OperationArgs, 0)
 

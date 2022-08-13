@@ -75,6 +75,11 @@ func (_m *MockIJava) CreateMBeanConnection(uri string) (mbean.BeanExecutor, erro
 	return r0, r1
 }
 
+// Detach provides a mock function with given fields:
+func (_m *MockIJava) Detach() {
+	_m.Called()
+}
+
 // IsStarted provides a mock function with given fields:
 func (_m *MockIJava) IsStarted() bool {
 	ret := _m.Called()
