@@ -172,14 +172,3 @@ func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
 
 	return stringRef, nil
 }
-
-// CreateJavaNative is a helper used to turn a primitive go type
-// (int, int64, float32/64, bool) into the corresponding java types
-func createJavaNative(env *jnigi.Env, obj any, typeName string) (*jnigi.ObjectRef, error) {
-	ref, err := env.NewObject(typeName, obj)
-	if err != nil {
-		return nil, fmt.Errorf("failed to turn %s into an object::%s", obj, err.Error())
-	}
-
-	return ref, nil
-}

@@ -40,7 +40,7 @@ type MBeanOperator interface {
 //		JavaType: "java.lang.String"
 //	  }
 type MBeanArgs struct {
-	Value    any
+	Value    string
 	JavaType string
 }
 

@@ -43,10 +43,10 @@ type Operation struct {
 }
 
 // OperationArgs is the type that holds data about the arguments used for MBean operations
-// Value is the value that is being entered
+// Value is the value that is being entered in string form
 // Type is the fully qualified java type `java.lang.String`
 type OperationArgs struct {
-	Value any
+	Value string
 	Type  string
 }
 
@@ -140,7 +140,7 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 }
 
 func getNameArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
-	values := make([]any, 0)
+	values := make([]string, 0)
 	classes := make([]string, 0)
 
 	for _, arg := range args {
@@ -152,7 +152,7 @@ func getNameArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 }
 
 func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
-	types := make([]any, 0)
+	types := make([]string, 0)
 	classes := make([]string, 0)
 
 	for _, arg := range args {
@@ -163,24 +163,14 @@ func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 	return getArray(env, types, classes, STRING)
 }
 
-func getArray(env *jnigi.Env, values []any, classes []string, className string) (*jnigi.ObjectRef, error) {
+func getArray(env *jnigi.Env, values []string, classes []string, className string) (*jnigi.ObjectRef, error) {
 
 	types := make([]*jnigi.ObjectRef, 0)
 	for i, value := range values {
-		var err error
-		var obj *jnigi.ObjectRef
 
 		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
 
-		if jniClassPath == STRING {
-			obj, err = createString(env, value.(string))
-		} else if jniClassPath == LIST {
-			obj, err = createJavaList(env, value.([]any))
-		} else if jniClassPath == MAP {
-			obj, err = createJavaMap(env, value.(map[any]any))
-		} else {
-			obj, err = createJavaNative(env, value, jniClassPath)
-		}
+		obj, err := createObjectReference(env, value, jniClassPath)
 
 		if err != nil {
 			return nil, err
