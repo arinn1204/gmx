@@ -20,10 +20,6 @@ clean:
 snapshot:
 	goreleaser release --snapshot --rm-dist -f .mac.goreleaser.yaml
 
-package_linux:
-	docker build --file build/linux.Dockerfile --tag gmx_linux .
-	docker run -e GITHUB_TOKEN=$(GITHUB_TOKEN) --mount source=dist,target=/go/src/gmx/dist -it gmx_linux /bin/sh
-
 vendor:
 	go mod tidy
 	go mod vendor
