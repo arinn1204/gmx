@@ -44,10 +44,12 @@ type Operation struct {
 
 // OperationArgs is the type that holds data about the arguments used for MBean operations
 // Value is the value that is being entered in string form
-// Type is the fully qualified java type `java.lang.String`
+// JavaType is the fully qualified java type `java.lang.String`
+// JavaContainerType is the fully qualified type of the container that will be holding JavaType
 type OperationArgs struct {
-	Value string
-	Type  string
+	Value             string
+	JavaType          string
+	JavaContainerType string
 }
 
 // BeanExecutor is the interface used around this package.
@@ -63,6 +65,8 @@ type BeanExecutor interface {
 	Close()
 }
 
+// WithEnvironment allos the client to spin up a new client using a new environment
+// This is handy when using the same JmxConnection in sub threads
 func (mbean *Client) WithEnvironment(env *jnigi.Env) BeanExecutor {
 	return &Client{
 		JmxConnection: mbean.JmxConnection,
@@ -153,7 +157,7 @@ func getNameArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 
 	for _, arg := range args {
 		values = append(values, arg.Value)
-		classes = append(classes, arg.Type)
+		classes = append(classes, arg.JavaType)
 	}
 
 	return getArray(env, values, classes, OBJECT)
@@ -164,7 +168,7 @@ func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 	classes := make([]string, 0)
 
 	for _, arg := range args {
-		types = append(types, arg.Type)
+		types = append(types, arg.JavaType)
 		classes = append(classes, STRING)
 	}
 

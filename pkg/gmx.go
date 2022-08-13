@@ -35,15 +35,26 @@ type MBeanOperator interface {
 //
 //	getValue(String name)
 //
-// then you will want to structure your args like
+// Then you will want to structure your args like
 //
 //	  MBeanArgs{
 //	    Value: "theNameOfTheStringYouAreFetching",
 //		JavaType: "java.lang.String"
 //	  }
+//
+// If the intent is to execute a command that accepts a list or a map, then the JavaContainerType will need to be defined
+// The JavaType will be the inner type that is being sent, whereas the container type will be the container.
+// For example:
+//
+//	  MBeanArgs{
+//	    Value: "[\"foo\", \"bar\"]",
+//		JavaType: "java.lang.String",
+//		JavaContainerType: "java.util.List"
+//	  }
 type MBeanArgs struct {
-	Value    string
-	JavaType string
+	Value             string
+	JavaType          string
+	JavaContainerType string
 }
 
 type batchExecutionResult struct {
@@ -105,8 +116,8 @@ func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string,
 		operationArgs = append(
 			operationArgs,
 			mbean.OperationArgs{
-				Value: arg.Value,
-				Type:  arg.JavaType,
+				Value:    arg.Value,
+				JavaType: arg.JavaType,
 			},
 		)
 	}

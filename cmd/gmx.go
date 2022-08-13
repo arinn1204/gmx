@@ -8,6 +8,7 @@ import (
 	gmx "github.com/arinn1204/gmx/pkg"
 )
 
+// Run is the main entry point for the cli
 func Run(domain string, name string, operation string, args string, types string) {
 	client := &gmx.Client{}
 	err := client.Initialize()

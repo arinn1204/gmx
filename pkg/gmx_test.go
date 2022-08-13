@@ -34,8 +34,8 @@ func TestExecuteAgainstID(t *testing.T) {
 
 		for j := 0; j < i; j++ {
 			operationArgs = append(operationArgs, mbean.OperationArgs{
-				Value: fmt.Sprintf("value%d", j),
-				Type:  "java.lang.String",
+				Value:    fmt.Sprintf("value%d", j),
+				JavaType: "java.lang.String",
 			})
 
 			args = append(args, MBeanArgs{
@@ -87,10 +87,10 @@ func TestExecuteAgainstAll(t *testing.T) {
 		Args:      make([]mbean.OperationArgs, 0),
 	}
 
-	locationId := uuid.New()
-	gameId := uuid.New()
+	locationID := uuid.New()
+	gameID := uuid.New()
 
-	expectedOperation[locationId] = operation
+	expectedOperation[locationID] = operation
 
 	gameExecutor := mbean.MockBeanExecutor{}
 	gameExecutor.On("WithEnvironment", env).Return(&gameExecutor)
@@ -101,8 +101,8 @@ func TestExecuteAgainstAll(t *testing.T) {
 	locationExecutor.On("Execute", operation).Return("CA", nil)
 
 	mbeans := make(map[uuid.UUID]mbean.BeanExecutor)
-	mbeans[locationId] = &locationExecutor
-	mbeans[gameId] = &gameExecutor
+	mbeans[locationID] = &locationExecutor
+	mbeans[gameID] = &gameExecutor
 
 	client := Client{
 		mbeans: mbeans,
@@ -110,10 +110,10 @@ func TestExecuteAgainstAll(t *testing.T) {
 
 	res, err := client.ExecuteAgainstAll("com.google", "spyware", "getLocation")
 
-	assert.Nil(t, err[gameId])
-	assert.Nil(t, err[locationId])
+	assert.Nil(t, err[gameID])
+	assert.Nil(t, err[locationID])
 
-	assert.Equal(t, "NV", res[gameId])
-	assert.Equal(t, "CA", res[locationId])
+	assert.Equal(t, "NV", res[gameID])
+	assert.Equal(t, "CA", res[locationID])
 
 }

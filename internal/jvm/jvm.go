@@ -37,6 +37,8 @@ func (java *Java) Attach() *jnigi.Env {
 	return configureEnvironment(java.jvm.AttachCurrentThread())
 }
 
+// Detach is the method that will unlock the active thread and remove it from the JNI environment
+// This should be done after the attached thread completes
 func (java *Java) Detach() {
 	runtime.UnlockOSThread()
 	java.jvm.DetachCurrentThread()

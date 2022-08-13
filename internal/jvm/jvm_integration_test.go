@@ -256,8 +256,8 @@ func readData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExecut
 		Operation: data.operationName,
 		Args: []mbean.OperationArgs{
 			{
-				Value: data.value,
-				Type:  "java.lang.String",
+				Value:    data.value,
+				JavaType: "java.lang.String",
 			},
 		},
 	}
@@ -275,12 +275,12 @@ func insertData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExec
 		Operation: data.operationName,
 		Args: []mbean.OperationArgs{
 			{
-				Value: "messi",
-				Type:  "java.lang.String",
+				Value:    "messi",
+				JavaType: "java.lang.String",
 			},
 			{
-				Value: data.value,
-				Type:  data.className,
+				Value:    data.value,
+				JavaType: data.className,
 			},
 		},
 	}
