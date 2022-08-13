@@ -61,7 +61,7 @@ func (client *Client) ExecuteAgainstAll(domain string, name string, operation st
 	for id := range client.mbeans {
 
 		wg.Add(1)
-		func(id uuid.UUID) {
+		go func(id uuid.UUID) {
 			defer wg.Done()
 			res, err := client.ExecuteAgainstID(id, domain, name, operation, args...)
 			result := batchExecutionResult{
