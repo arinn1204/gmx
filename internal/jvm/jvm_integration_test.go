@@ -210,14 +210,12 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			testName:    "IntegerTesting",
 			expectedVal: "214493647",
 		},
-		//TODO figure these two out, when creating the float it is scewing the number
 		{
 			initialData: &testData{value: "214493647.1431", className: "java.lang.Double", operationName: "putDouble"},
 			readData:    &testData{value: "messi", operationName: "getDouble"},
 			testName:    "DoubleTesting",
 			expectedVal: "214493647.1431",
 		},
-		//TODO figure these two out, when creating the float it is scewing the number
 		{
 			initialData: &testData{value: "32.431", className: "java.lang.Float", operationName: "putFloat"},
 			readData:    &testData{value: "messi", operationName: "getFloat"},
