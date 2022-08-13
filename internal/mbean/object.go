@@ -43,6 +43,7 @@ func createMap(value string, env *jnigi.Env) (*jnigi.ObjectRef, error) {
 func createJavaNative(env *jnigi.Env, input string, typeName string) (*jnigi.ObjectRef, error) {
 	var obj any
 	var err error
+
 	switch typeName {
 	case STRING:
 		obj = input
