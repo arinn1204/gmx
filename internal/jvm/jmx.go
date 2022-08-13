@@ -15,7 +15,6 @@ import (
 func (java *Java) CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) {
 
 	env := java.Attach()
-	configureEnvironment(env)
 
 	jmxConnector, err := buildJMXConnector(env, uri)
 

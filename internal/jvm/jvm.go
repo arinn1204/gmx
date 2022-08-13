@@ -33,7 +33,7 @@ type IJava interface {
 // and should be used whenever a new go routine is used
 func (java *Java) Attach() *jnigi.Env {
 	runtime.LockOSThread()
-	return java.jvm.AttachCurrentThread()
+	return configureEnvironment(java.jvm.AttachCurrentThread())
 }
 
 // IsStarted will indicate whether or not the JVM has already been started
@@ -77,6 +77,9 @@ func (java *Java) ShutdownJvm() error {
 		return nil
 	}
 
+	runtime.UnlockOSThread()
+	java.jvm.DetachCurrentThread()
+
 	if err := java.jvm.Destroy(); err != nil {
 		return err
 	}
@@ -87,6 +90,7 @@ func (java *Java) ShutdownJvm() error {
 	return nil
 }
 
-func configureEnvironment(env *jnigi.Env) {
+func configureEnvironment(env *jnigi.Env) *jnigi.Env {
 	env.ExceptionHandler = jnigi.ThrowableToStringExceptionHandler
+	return env
 }
