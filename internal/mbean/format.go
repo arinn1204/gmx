@@ -8,7 +8,7 @@ import (
 	"tekao.net/jnigi"
 )
 
-func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any, error) {
+func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (string, error) {
 	if param.IsNil() {
 		return "", nil
 	}
@@ -22,13 +22,11 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 		return "", err
 	}
 
-	var result any
-
 	if strings.EqualFold(clazz, "String") {
 		if err := fromJavaString(param, env, &bytes); err != nil {
 			return "", err
 		}
-		result = string(bytes)
+		return string(bytes), nil
 	} else if strings.EqualFold(clazz, "Long") {
 		res := int64(0)
 
@@ -36,7 +34,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return fmt.Sprintf("%d", res), nil
 	} else if strings.EqualFold(clazz, "Integer") {
 		res := 0
 
@@ -44,7 +42,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return fmt.Sprintf("%d", res), nil
 	} else if strings.EqualFold(clazz, "Double") {
 		res := float64(0)
 
@@ -52,7 +50,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return fmt.Sprintf("%f", res), nil
 	} else if strings.EqualFold(clazz, "Float") {
 		res := float32(0)
 
@@ -60,7 +58,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return fmt.Sprintf("%f", res), nil
 	} else if strings.EqualFold(clazz, "Boolean") {
 		res := false
 
@@ -68,7 +66,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return fmt.Sprintf("%t", res), nil
 	} else if strings.EqualFold(clazz, "List") {
 		res := make([]any, 0)
 
@@ -76,7 +74,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return "", nil
 	} else if strings.EqualFold(clazz, "Map") {
 		res := make(map[any]any)
 
@@ -84,12 +82,10 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (any,
 			return "", err
 		}
 
-		result = res
+		return "", nil
 	} else {
 		return "", fmt.Errorf("type of %s does not have a defined handler", clazz)
 	}
-
-	return result, nil
 }
 
 func fromJavaString(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]byte) error {

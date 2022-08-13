@@ -23,9 +23,9 @@ type MBeanOperator interface {
 	Connect(hostname string, port int) (*uuid.UUID, error)
 	// This will execute the given operation against every MBean that has already been created.
 	// It will return a mapping of results and errors based on the ID of the bean
-	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]any, map[uuid.UUID]error)
+	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 	// This will execute the given operation against the spefied bean
-	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (any, error)
+	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
 }
 
 // MBeanArgs is the container for the operation arguments.
@@ -46,8 +46,8 @@ type MBeanArgs struct {
 
 // ExecuteAgainstAll will execute a single command against every mbean that is currently registered.
 // This will return a mapping of all results and errors, based on the UUID that the connection has been assigned.
-func (client *Client) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]any, map[uuid.UUID]error) {
-	result := make(map[uuid.UUID]any)
+func (client *Client) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
+	result := make(map[uuid.UUID]string)
 	receivedErrors := make(map[uuid.UUID]error)
 
 	for id := range client.mbeans {
@@ -61,7 +61,7 @@ func (client *Client) ExecuteAgainstAll(domain string, name string, operation st
 
 // ExecuteAgainstID is a method that will take a given operation and MBean ID and make the JMX request.
 // It will return whatever is returned downstream, errors and all
-func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (any, error) {
+func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error) {
 	bean := client.mbeans[id]
 
 	operationArgs := make([]mbean.OperationArgs, 0)

@@ -18,16 +18,14 @@ func (_m *MockBeanExecutor) Close() {
 }
 
 // Execute provides a mock function with given fields: operation
-func (_m *MockBeanExecutor) Execute(operation Operation) (interface{}, error) {
+func (_m *MockBeanExecutor) Execute(operation Operation) (string, error) {
 	ret := _m.Called(operation)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(Operation) interface{}); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(Operation) string); ok {
 		r0 = rf(operation)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error

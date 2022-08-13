@@ -46,7 +46,7 @@ func Run(domain string, name string, operation string, args string, types string
 
 	if err != nil {
 		log.Fatal(err)
-	} else if result != nil && (result != "") {
+	} else if result != "" {
 		fmt.Println(result)
 	}
 }

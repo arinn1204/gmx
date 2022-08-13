@@ -41,7 +41,7 @@ func (_m *MockMBeanOperator) Connect(hostname string, port int) (*uuid.UUID, err
 }
 
 // ExecuteAgainstAll provides a mock function with given fields: domain, name, operation, args
-func (_m *MockMBeanOperator) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]interface{}, map[uuid.UUID]error) {
+func (_m *MockMBeanOperator) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	_va := make([]interface{}, len(args))
 	for _i := range args {
 		_va[_i] = args[_i]
@@ -51,12 +51,12 @@ func (_m *MockMBeanOperator) ExecuteAgainstAll(domain string, name string, opera
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 map[uuid.UUID]interface{}
-	if rf, ok := ret.Get(0).(func(string, string, string, ...MBeanArgs) map[uuid.UUID]interface{}); ok {
+	var r0 map[uuid.UUID]string
+	if rf, ok := ret.Get(0).(func(string, string, string, ...MBeanArgs) map[uuid.UUID]string); ok {
 		r0 = rf(domain, name, operation, args...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[uuid.UUID]interface{})
+			r0 = ret.Get(0).(map[uuid.UUID]string)
 		}
 	}
 
@@ -73,7 +73,7 @@ func (_m *MockMBeanOperator) ExecuteAgainstAll(domain string, name string, opera
 }
 
 // ExecuteAgainstID provides a mock function with given fields: id, domain, name, operation, args
-func (_m *MockMBeanOperator) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (interface{}, error) {
+func (_m *MockMBeanOperator) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error) {
 	_va := make([]interface{}, len(args))
 	for _i := range args {
 		_va[_i] = args[_i]
@@ -83,13 +83,11 @@ func (_m *MockMBeanOperator) ExecuteAgainstID(id uuid.UUID, domain string, name 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(uuid.UUID, string, string, string, ...MBeanArgs) interface{}); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(uuid.UUID, string, string, string, ...MBeanArgs) string); ok {
 		r0 = rf(id, domain, name, operation, args...)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error

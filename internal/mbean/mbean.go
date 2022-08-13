@@ -57,7 +57,7 @@ type OperationArgs struct {
 //
 // for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
-	Execute(operation Operation) (any, error)
+	Execute(operation Operation) (string, error)
 	GetEnv() *jnigi.Env
 	Close()
 }
@@ -76,7 +76,7 @@ func (mbean *Client) Close() {
 }
 
 // Execute is the orchestration for a JMX command execution.
-func (mbean *Client) Execute(operation Operation) (any, error) {
+func (mbean *Client) Execute(operation Operation) (string, error) {
 
 	returnString := jnigi.NewObjectRef(OBJECT)
 	if err := invoke(mbean.Env, operation, mbean, returnString); err != nil {
