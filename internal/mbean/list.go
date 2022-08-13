@@ -26,6 +26,7 @@ func genericCreateJavaList[T any](env *jnigi.Env, list []T) (*jnigi.ObjectRef, e
 	res := false
 	for _, val := range list {
 		env.PrecalculateSignature("(Ljava/lang/Object;)Z") //since we don't have type params for the list
+		defer env.PrecalculateSignature("")
 		err = arrayList.CallMethod(env, "add", &res, val)
 
 		if !res || err != nil {

@@ -11,6 +11,10 @@ import (
 func createObjectReference(env *jnigi.Env, value string, classPath string) (*jnigi.ObjectRef, error) {
 	if classPath == STRING {
 		return createString(env, value)
+	} else if classPath == FLOAT {
+		return createFloat(env, value)
+	} else if classPath == DOUBLE {
+		return createDouble(env, value)
 	} else if classPath == LIST {
 		return createList(value, env)
 	} else if classPath == MAP {
@@ -52,11 +56,6 @@ func createJavaNative(env *jnigi.Env, input string, typeName string) (*jnigi.Obj
 		obj = int(obj.(int64))
 	case LONG:
 		obj, err = strconv.ParseInt(input, 10, 8*8)
-	case FLOAT:
-		obj, err = strconv.ParseFloat(input, 32)
-		obj = float32(obj.(float64))
-	case DOUBLE:
-		obj, err = strconv.ParseFloat(input, 64)
 	case BOOLEAN:
 		obj, err = strconv.ParseBool(input)
 	}

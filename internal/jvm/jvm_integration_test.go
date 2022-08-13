@@ -96,6 +96,27 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	assert.Equal(t, testData[1].expectedVal, res)
 }
 
+func TestCreatingFloats(t *testing.T) {
+	lockCurrentThread(java)
+	defer unlockCurrentThread(java)
+
+	value := float32(3.1415)
+	stringRef, err := java.Env.NewObject(mbean.STRING, []byte("3.1415"))
+
+	assert.Nil(t, err)
+	floatRef := jnigi.NewObjectRef(mbean.FLOAT)
+	err = java.Env.CallStaticMethod(mbean.FLOAT, "valueOf", floatRef, stringRef)
+
+	assert.Nil(t, err)
+
+	res32 := float32(0)
+
+	err = floatRef.CallMethod(java.Env, "floatValue", &res32)
+
+	assert.Nil(t, err)
+	assert.Equal(t, value, res32)
+}
+
 func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping Integration tests when running short mode")
@@ -190,19 +211,19 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			expectedVal: "214493647",
 		},
 		//TODO figure these two out, when creating the float it is scewing the number
-		// {
-		// 	initialData: &testData{value: "214493647.1431", className: "java.lang.Double", operationName: "putDouble"},
-		// 	readData:    &testData{value: "messi", operationName: "getDouble"},
-		// 	testName:    "DoubleTesting",
-		// 	expectedVal: "214493647.1431",
-		// },
-		// //TODO figure these two out, when creating the float it is scewing the number
-		// {
-		// 	initialData: &testData{value: "32.431", className: "java.lang.Float", operationName: "putFloat"},
-		// 	readData:    &testData{value: "messi", operationName: "getFloat"},
-		// 	testName:    "FloatTesting",
-		// 	expectedVal: "32.431",
-		// },
+		{
+			initialData: &testData{value: "214493647.1431", className: "java.lang.Double", operationName: "putDouble"},
+			readData:    &testData{value: "messi", operationName: "getDouble"},
+			testName:    "DoubleTesting",
+			expectedVal: "214493647.1431",
+		},
+		//TODO figure these two out, when creating the float it is scewing the number
+		{
+			initialData: &testData{value: "32.431", className: "java.lang.Float", operationName: "putFloat"},
+			readData:    &testData{value: "messi", operationName: "getFloat"},
+			testName:    "FloatTesting",
+			expectedVal: "32.431",
+		},
 		{
 			initialData: &testData{value: "true", className: "java.lang.Boolean", operationName: "putBoolean"},
 			readData:    &testData{value: "messi", operationName: "getBoolean"},

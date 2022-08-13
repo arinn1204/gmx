@@ -3,6 +3,7 @@ package mbean
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"tekao.net/jnigi"
@@ -50,7 +51,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (stri
 			return "", err
 		}
 
-		return fmt.Sprintf("%f", res), nil
+		return strconv.FormatFloat(res, 'f', -1, 64), nil
 	} else if strings.EqualFold(clazz, "Float") {
 		res := float32(0)
 
@@ -58,7 +59,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (stri
 			return "", err
 		}
 
-		return fmt.Sprintf("%f", res), nil
+		return strconv.FormatFloat(float64(res), 'f', -1, 32), nil
 	} else if strings.EqualFold(clazz, "Boolean") {
 		res := false
 
@@ -167,4 +168,27 @@ func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
 	}
 
 	return stringRef, nil
+}
+
+func createFloat(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
+	return createFloatingPoiintValue(env, str, FLOAT)
+}
+
+func createDouble(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
+	return createFloatingPoiintValue(env, str, DOUBLE)
+}
+
+func createFloatingPoiintValue(env *jnigi.Env, str string, class string) (*jnigi.ObjectRef, error) {
+	stringifiedFloat, err := createString(env, str)
+
+	if err != nil {
+		return nil, err
+	}
+
+	floatRef := jnigi.NewObjectRef(class)
+	if err = env.CallStaticMethod(class, "valueOf", floatRef, stringifiedFloat); err != nil {
+		return nil, fmt.Errorf("failed to create a %s from stringref::%s", class, err)
+	}
+
+	return floatRef, nil
 }
