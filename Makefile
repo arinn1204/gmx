@@ -14,7 +14,7 @@ build:
 
 clean:
 	go clean
-	@rm -r dist
+	@rm -r dist || exit 0
 	@rm gmx  2>/dev/null || exit 0
 
 snapshot:
