@@ -1,7 +1,6 @@
 package mbean
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -15,31 +14,9 @@ func createObjectReference(env *jnigi.Env, value string, classPath string) (*jni
 		return createFloat(env, value)
 	} else if classPath == DOUBLE {
 		return createDouble(env, value)
-	} else if classPath == LIST {
-		return createList(value, env)
-	} else if classPath == MAP {
-		return createMap(value, env)
 	} else {
 		return createJavaNative(env, value, classPath)
 	}
-}
-
-func createList(value string, env *jnigi.Env) (*jnigi.ObjectRef, error) {
-	dest := make(map[any]any)
-	if err := json.Unmarshal([]byte(value), &dest); err != nil {
-		return nil, fmt.Errorf("failed to convert %s to a map::%s", value, err)
-	}
-
-	return createJavaList(env, value)
-}
-
-func createMap(value string, env *jnigi.Env) (*jnigi.ObjectRef, error) {
-	dest := make(map[any]any)
-	if err := json.Unmarshal([]byte(value), &dest); err != nil {
-		return nil, fmt.Errorf("failed to convert %s to a map::%s", value, err)
-	}
-
-	return createJavaMap(env, dest)
 }
 
 // CreateJavaNative is a helper used to turn a primitive go type

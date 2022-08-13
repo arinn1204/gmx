@@ -228,12 +228,6 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			testName:    "BooleanTesting",
 			expectedVal: "true",
 		},
-		// {
-		// 	initialData: &testData{value: "[1, 2, 3, 4, 5]", className: "java.util.List", operationName: "putList"},
-		// 	readData:    &testData{value: "messi", operationName: "getList"},
-		// 	testName:    "ListTesting",
-		// 	expectedVal: "[1, 2, 3, 4, 5]",
-		// },
 	}
 
 	lockCurrentThread(java)
