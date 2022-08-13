@@ -20,6 +20,9 @@ clean:
 snapshot:
 	goreleaser release --snapshot --rm-dist -f .mac.goreleaser.yaml
 
+release:
+	goreleaser release --rm-dist -f .mac.goreleaser.yaml
+
 vendor:
 	go mod tidy
 	go mod vendor
