@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/arinn1204/gmx/cmd"
+	"github.com/arinn1204/gmx/internal/mbean"
 )
 
 var (
@@ -50,6 +51,16 @@ func validateArgs() {
 		(strings.Count(*args, ",") != strings.Count(*types, ",")) {
 		flag.Usage()
 		log.Fatal("\nMust provide types for all the args provided")
+	}
+
+	if types != nil {
+		splitTypes := strings.Split(*types, ",")
+
+		for _, argType := range splitTypes {
+			if argType == mbean.LIST || argType == mbean.MAP {
+				log.Fatalln("The CLI does not currently support LIST or MAP operations")
+			}
+		}
 	}
 }
 
