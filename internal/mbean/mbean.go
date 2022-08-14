@@ -95,7 +95,7 @@ func (mbean *Client) Execute(operation Operation) (string, error) {
 		return "", err
 	}
 
-	return toGoString(mbean.Env, returnString, STRING)
+	return toGoString(mbean.Env, returnString)
 }
 
 func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.ObjectRef) error {

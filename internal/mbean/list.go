@@ -36,5 +36,21 @@ func (list *listRef[T]) toObjectReference() *jnigi.ObjectRef {
 }
 
 func createGoArrayFromList(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) error {
+	iterator, err := getIterator(env, param)
+
+	if err != nil {
+		return err
+	}
+
+	for hasNext(env, iterator) {
+		value, err := getNext(env, iterator)
+		if err != nil {
+			return err
+		}
+		if err = fromJava(value, env, dest); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
