@@ -11,13 +11,13 @@ const (
 	DOUBLE = "java/lang/Double"
 )
 
-type doubleHandler struct{}
+type DoubleHandler struct{}
 
-func (handler *doubleHandler) toJniRepresentation(env *jnigi.Env, value float64) (*jnigi.ObjectRef, error) {
-	stringifiedValue := strconv.FormatFloat(value, 'f', -1, 32)
-	strHandler := &stringHandler{}
+func (handler *DoubleHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
+	stringifiedValue := strconv.FormatFloat(value.(float64), 'f', -1, 64)
+	strHandler := &StringHandler{}
 
-	strRef, err := strHandler.toJniRepresentation(env, stringifiedValue)
+	strRef, err := strHandler.ToJniRepresentation(env, stringifiedValue)
 
 	if err != nil {
 		return nil, err
@@ -34,10 +34,12 @@ func (handler *doubleHandler) toJniRepresentation(env *jnigi.Env, value float64)
 	return floatRef, nil
 }
 
-func (handler *doubleHandler) toGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *float64) error {
-	if err := object.CallMethod(env, "doubleValue", dest); err != nil {
+func (handler *DoubleHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
+	val := float64(0)
+	if err := object.CallMethod(env, "doubleValue", &val); err != nil {
 		return errors.New("failed to create a float::" + err.Error())
 	}
+	*dest = val
 
 	return nil
 }

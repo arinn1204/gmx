@@ -57,16 +57,14 @@ func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 }
 
 // RegisterClassHandler provides a mock function with given fields: typeName, handler
-func (_m *MockBeanExecutor) RegisterClassHandler(typeName string, handler extensions.IClassHandler[interface{}]) BeanExecutor {
+func (_m *MockBeanExecutor) RegisterClassHandler(typeName string, handler extensions.IClassHandler) error {
 	ret := _m.Called(typeName, handler)
 
-	var r0 BeanExecutor
-	if rf, ok := ret.Get(0).(func(string, extensions.IClassHandler[interface{}]) BeanExecutor); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, extensions.IClassHandler) error); ok {
 		r0 = rf(typeName, handler)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(BeanExecutor)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

@@ -11,10 +11,10 @@ const (
 	LONG = "java/lang/Long"
 )
 
-type longHandler struct{}
+type LongHandler struct{}
 
-func (handler *longHandler) toJniRepresentation(env *jnigi.Env, value int64) (*jnigi.ObjectRef, error) {
-	intref, err := env.NewObject(LONG, value)
+func (handler *LongHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
+	intref, err := env.NewObject(LONG, value.(int64))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create integer from %d::%s", value, err)
@@ -23,10 +23,14 @@ func (handler *longHandler) toJniRepresentation(env *jnigi.Env, value int64) (*j
 	return intref, err
 }
 
-func (handler *longHandler) toGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *int64) error {
-	if err := object.CallMethod(env, "longValue", dest); err != nil {
+func (handler *LongHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
+	val := int64(0)
+
+	if err := object.CallMethod(env, "longValue", &val); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
+
+	*dest = val
 
 	return nil
 }

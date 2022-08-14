@@ -11,13 +11,13 @@ const (
 	FLOAT = "java/lang/Float"
 )
 
-type floatHandler struct{}
+type FloatHandler struct{}
 
-func (handler *floatHandler) toJniRepresentation(env *jnigi.Env, value float32) (*jnigi.ObjectRef, error) {
-	stringifiedValue := strconv.FormatFloat(float64(value), 'f', -1, 32)
-	strHandler := &stringHandler{}
+func (handler *FloatHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
+	stringifiedValue := strconv.FormatFloat(float64(value.(float32)), 'f', -1, 32)
+	strHandler := &StringHandler{}
 
-	strRef, err := strHandler.toJniRepresentation(env, stringifiedValue)
+	strRef, err := strHandler.ToJniRepresentation(env, stringifiedValue)
 
 	if err != nil {
 		return nil, err
@@ -34,10 +34,13 @@ func (handler *floatHandler) toJniRepresentation(env *jnigi.Env, value float32) 
 	return floatRef, nil
 }
 
-func (handler *floatHandler) toGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *float32) error {
-	if err := object.CallMethod(env, "floatValue", dest); err != nil {
+func (handler *FloatHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
+	val := float32(0)
+	if err := object.CallMethod(env, "floatValue", &val); err != nil {
 		return errors.New("failed to create a float::" + err.Error())
 	}
+
+	*dest = val
 
 	return nil
 }
