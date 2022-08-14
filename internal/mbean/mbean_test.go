@@ -10,7 +10,7 @@ import (
 
 func TestRegisterClassHandler_SingleTypedTest(t *testing.T) {
 	client := &Client{
-		classHandlers: make(map[string]extensions.IClassHandler),
+		classHandlers: make(map[string]extensions.IHandler),
 	}
 	doubleHandler := handlers.DoubleHandler{}
 	client.RegisterClassHandler(handlers.JNI_DOUBLE, &doubleHandler)
@@ -20,7 +20,7 @@ func TestRegisterClassHandler_SingleTypedTest(t *testing.T) {
 
 func TestRegisterClassHandler_MultipleTypedTest(t *testing.T) {
 	client := &Client{
-		classHandlers: make(map[string]extensions.IClassHandler),
+		classHandlers: make(map[string]extensions.IHandler),
 	}
 	doubleHandler := handlers.DoubleHandler{}
 	floatHandler := handlers.FloatHandler{}

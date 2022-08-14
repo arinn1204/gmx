@@ -29,7 +29,7 @@ const (
 type Client struct {
 	JmxConnection *jnigi.ObjectRef
 	Env           *jnigi.Env
-	classHandlers map[string]extensions.IClassHandler
+	classHandlers map[string]extensions.IHandler
 }
 
 // Operation is the operation that is being performed
@@ -61,7 +61,7 @@ type OperationArgs struct {
 //
 // for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
-	RegisterClassHandler(typeName string, handler extensions.IClassHandler) error
+	RegisterClassHandler(typeName string, handler extensions.IHandler) error
 	Execute(operation Operation) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
@@ -70,7 +70,7 @@ type BeanExecutor interface {
 
 // RegisterClassHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
-func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IClassHandler) error {
+func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) error {
 	mbean.classHandlers[typeName] = handler
 	return nil
 }
