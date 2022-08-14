@@ -61,6 +61,10 @@ func createContainerReference(env *jnigi.Env, value string, elementTypePath stri
 		arr := make([]int, 0)
 		json.Unmarshal(byteStr, &arr)
 		return createGenericContainerReference(env, containerTypePath, arr)
+	case LONG:
+		arr := make([]int64, 0)
+		json.Unmarshal(byteStr, &arr)
+		return createGenericContainerReference(env, containerTypePath, arr)
 	case BOOLEAN:
 		arr := make([]bool, 0)
 		json.Unmarshal(byteStr, &arr)

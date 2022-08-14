@@ -236,10 +236,34 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 		LIST TESTING
 		*/
 		{
-			initialData: &testData{value: "[1,2,3]", className: "java.lang.Integer", containerName: "java.util.List", operationName: "putList"},
+			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Integer", containerName: "java.util.List", operationName: "putList"},
 			readData:    &testData{value: "messi", operationName: "getList"},
 			testName:    "IntListTesting",
 			expectedVal: "[1,2,3]",
+		},
+		{
+			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Long", containerName: "java.util.List", operationName: "putList"},
+			readData:    &testData{value: "messi", operationName: "getList"},
+			testName:    "LongListTesting",
+			expectedVal: "[1,2,3]",
+		},
+		{
+			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Float", containerName: "java.util.List", operationName: "putList"},
+			readData:    &testData{value: "messi", operationName: "getList"},
+			testName:    "FloatListTesting",
+			expectedVal: "[1.31,2.431,3.6543]",
+		},
+		{
+			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Double", containerName: "java.util.List", operationName: "putList"},
+			readData:    &testData{value: "messi", operationName: "getList"},
+			testName:    "DoubleListTesting",
+			expectedVal: "[1.31,2.431,3.6543]",
+		},
+		{
+			initialData: &testData{value: "[true,false,true]", className: "java.lang.Boolean", containerName: "java.util.List", operationName: "putList"},
+			readData:    &testData{value: "messi", operationName: "getList"},
+			testName:    "BoolListTesting",
+			expectedVal: "[true,false,true]",
 		},
 	}
 
