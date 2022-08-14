@@ -268,36 +268,36 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 		/**
 		SET TESTING
 		*/
-		{
-			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Integer", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "IntSetTesting",
-			expectedVal: "[1,2,3]",
-		},
-		{
-			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Long", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "LongSetTesting",
-			expectedVal: "[1,2,3]",
-		},
-		{
-			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Float", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "FloatSetTesting",
-			expectedVal: "[1.31,2.431,3.6543]",
-		},
-		{
-			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Double", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "DoubleSetTesting",
-			expectedVal: "[1.31,2.431,3.6543]",
-		},
-		{
-			initialData: &testData{value: "[true,false,true]", className: "java.lang.Boolean", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "BoolSetTesting",
-			expectedVal: "[true,false,true]",
-		},
+		// {
+		// 	initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Integer", containerName: "java.util.Set", operationName: "putSet"},
+		// 	readData:    &testData{value: "messi", operationName: "getSet"},
+		// 	testName:    "IntSetTesting",
+		// 	expectedVal: "[1,2,3]",
+		// },
+		// {
+		// 	initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Long", containerName: "java.util.Set", operationName: "putSet"},
+		// 	readData:    &testData{value: "messi", operationName: "getSet"},
+		// 	testName:    "LongSetTesting",
+		// 	expectedVal: "[1,2,3]",
+		// },
+		// {
+		// 	initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Float", containerName: "java.util.Set", operationName: "putSet"},
+		// 	readData:    &testData{value: "messi", operationName: "getSet"},
+		// 	testName:    "FloatSetTesting",
+		// 	expectedVal: "[1.31,2.431,3.6543]",
+		// },
+		// {
+		// 	initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Double", containerName: "java.util.Set", operationName: "putSet"},
+		// 	readData:    &testData{value: "messi", operationName: "getSet"},
+		// 	testName:    "DoubleSetTesting",
+		// 	expectedVal: "[1.31,2.431,3.6543]",
+		// },
+		// {
+		// 	initialData: &testData{value: "[true,false,true]", className: "java.lang.Boolean", containerName: "java.util.Set", operationName: "putSet"},
+		// 	readData:    &testData{value: "messi", operationName: "getSet"},
+		// 	testName:    "BoolSetTesting",
+		// 	expectedVal: "[true,false,true]",
+		// },
 	}
 
 	lockCurrentThread(java)
