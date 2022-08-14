@@ -35,13 +35,9 @@ func (handler *FloatHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jn
 	return floatRef, nil
 }
 
-func (handler *FloatHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
-	val := float32(0)
-	if err := object.CallMethod(env, "floatValue", &val); err != nil {
+func (handler *FloatHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	if err := object.CallMethod(env, "floatValue", dest); err != nil {
 		return errors.New("failed to create a float::" + err.Error())
 	}
-
-	*dest = val
-
 	return nil
 }

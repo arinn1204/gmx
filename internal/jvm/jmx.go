@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/arinn1204/gmx/internal/mbean"
+	"github.com/arinn1204/gmx/pkg/extensions"
 
 	"tekao.net/jnigi"
 )
@@ -28,6 +29,7 @@ func (java *Java) CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) 
 	mbean := &mbean.Client{
 		JmxConnection: jmxConnector,
 		Env:           env,
+		ClassHandlers: make(map[string]extensions.IHandler),
 	}
 
 	return mbean, err

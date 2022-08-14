@@ -6,15 +6,21 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arinn1204/gmx/internal/handlers"
+	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
-func toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string, error) {
+var stringHandler extensions.IHandler
+
+func init() {
+	stringHandler = &handlers.StringHandler{}
+}
+
+func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string, error) {
 	if param.IsNil() {
 		return "", nil
 	}
-
-	var bytes []byte
 
 	clazz, err := getClassName(param, env)
 
@@ -23,53 +29,58 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string, error) {
 		return "", err
 	}
 
-	if strings.EqualFold(clazz, "String") {
-		if err := fromJavaString(param, env, &bytes); err != nil {
+	handler := mbean.ClassHandlers[clazz]
+
+	if strings.EqualFold(clazz, handlers.STRING_CLASSPATH) {
+		var str string
+
+		if err = handler.ToGoRepresentation(env, param, &str); err != nil {
 			return "", err
 		}
-		return string(bytes), nil
-	} else if strings.EqualFold(clazz, "Long") {
+
+		return str, nil
+	} else if strings.EqualFold(clazz, handlers.LONG_CLASSPATH) {
 		res := int64(0)
 
-		if err := fromJavaLong(param, env, &res); err != nil {
+		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
 			return "", err
 		}
 
 		return fmt.Sprintf("%d", res), nil
-	} else if strings.EqualFold(clazz, "Integer") {
+	} else if strings.EqualFold(clazz, handlers.INT_CLASSPATH) {
 		res := 0
 
-		if err := fromJavaInteger(param, env, &res); err != nil {
+		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
 			return "", err
 		}
 
 		return fmt.Sprintf("%d", res), nil
-	} else if strings.EqualFold(clazz, "Double") {
+	} else if strings.EqualFold(clazz, handlers.DOUBLE_CLASSPATH) {
 		res := float64(0)
 
-		if err := fromJavaDouble(param, env, &res); err != nil {
+		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
 			return "", err
 		}
 
 		return strconv.FormatFloat(res, 'f', -1, 64), nil
-	} else if strings.EqualFold(clazz, "Float") {
+	} else if strings.EqualFold(clazz, handlers.FLOAT_CLASSPATH) {
 		res := float32(0)
 
-		if err := fromJavaFloat(param, env, &res); err != nil {
+		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
 			return "", err
 		}
 
 		return strconv.FormatFloat(float64(res), 'f', -1, 32), nil
-	} else if strings.EqualFold(clazz, "Boolean") {
+	} else if strings.EqualFold(clazz, handlers.BOOL_CLASSPATH) {
 		res := false
 
-		if err := fromJavaBoolean(param, env, &res); err != nil {
+		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
 			return "", err
 		}
 
 		return fmt.Sprintf("%t", res), nil
 	} else {
-		return checkForKnownInterfaces(env, param, clazz)
+		return mbean.checkForKnownInterfaces(env, param, clazz)
 	}
 }
 
@@ -94,16 +105,16 @@ func getClassName(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 		return "", err
 	}
 
-	if err := cls.CallMethod(env, "getSimpleName", name); err != nil {
+	if err := cls.CallMethod(env, "getName", name); err != nil {
 		return "", errors.New("failed to get class name::" + err.Error())
 	}
 
-	var bytes []byte
-	if err := name.CallMethod(env, "getBytes", &bytes); err != nil {
-		return "", errors.New("failed to get byte representation::" + err.Error())
+	var strName string
+	if err = stringHandler.ToGoRepresentation(env, name, &strName); err != nil {
+		return "", err
 	}
 
-	return string(bytes), nil
+	return strName, nil
 }
 
 func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
@@ -136,4 +147,27 @@ func createFloatingPointValue(env *jnigi.Env, str string, class string) (*jnigi.
 	}
 
 	return floatRef, nil
+}
+
+func toTypeFromString(value string, className string) (any, error) {
+	var val any
+	var err error
+	switch className {
+	case handlers.BOOL_CLASSPATH:
+		val, err = strconv.ParseBool(value)
+	case handlers.DOUBLE_CLASSPATH:
+		val, err = strconv.ParseFloat(value, 64)
+	case handlers.FLOAT_CLASSPATH:
+		val, err = strconv.ParseFloat(value, 32)
+		val = float32(val.(float64))
+	case handlers.INT_CLASSPATH:
+		val, err = strconv.ParseInt(value, 10, 32)
+		val = int(val.(int64))
+	case handlers.LONG_CLASSPATH:
+		val, err = strconv.ParseInt(value, 10, 64)
+	case handlers.STRING_CLASSPATH, handlers.JNI_STRING:
+		val, err = value, nil
+	}
+
+	return val, err
 }

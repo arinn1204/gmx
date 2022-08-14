@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/arinn1204/gmx/internal/handlers"
 	extensions "github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
@@ -29,7 +30,7 @@ const (
 type Client struct {
 	JmxConnection *jnigi.ObjectRef
 	Env           *jnigi.Env
-	classHandlers map[string]extensions.IHandler
+	ClassHandlers map[string]extensions.IHandler
 }
 
 // Operation is the operation that is being performed
@@ -71,7 +72,7 @@ type BeanExecutor interface {
 // RegisterClassHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) error {
-	mbean.classHandlers[typeName] = handler
+	mbean.ClassHandlers[typeName] = handler
 	return nil
 }
 
@@ -101,14 +102,14 @@ func (mbean *Client) Close() {
 func (mbean *Client) Execute(operation Operation) (string, error) {
 
 	returnString := jnigi.NewObjectRef(OBJECT)
-	if err := invoke(mbean.Env, operation, mbean, returnString); err != nil {
+	if err := mbean.invoke(mbean.Env, operation, returnString); err != nil {
 		return "", err
 	}
 
-	return toGoString(mbean.Env, returnString)
+	return mbean.toGoString(mbean.Env, returnString)
 }
 
-func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.ObjectRef) error {
+func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
 	objectParam, err := createString(env, mbeanName)
 
@@ -123,7 +124,7 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 		return errors.New("failed to create ObjectName::" + err.Error())
 	}
 
-	names, err := getValueArray(env, operation.Args)
+	names, err := mbean.getValueArray(env, operation.Args)
 	if names != nil {
 		defer env.DeleteLocalRef(names)
 	}
@@ -132,7 +133,7 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 		return err
 	}
 
-	types, err := getTypeArray(env, operation.Args)
+	types, err := mbean.getTypeArray(env, operation.Args)
 
 	if types != nil {
 		defer env.DeleteLocalRef(types)
@@ -161,7 +162,7 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 	return nil
 }
 
-func getValueArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
+func (mbean *Client) getValueArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
 	values := make([]string, 0)
 	classes := make([]string, 0)
 	containerType := make([]string, 0)
@@ -172,10 +173,10 @@ func getValueArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, erro
 		containerType = append(containerType, arg.JavaContainerType)
 	}
 
-	return getArray(env, values, classes, containerType, OBJECT)
+	return mbean.getArray(env, values, classes, containerType, OBJECT)
 }
 
-func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
+func (mbean *Client) getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
 	types := make([]string, 0)
 	classes := make([]string, 0)
 	containerType := make([]string, 0)
@@ -189,14 +190,14 @@ func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error
 		}
 
 		types = append(types, paramType)
-		classes = append(classes, STRING)
+		classes = append(classes, handlers.STRING_CLASSPATH)
 		containerType = append(containerType, "") // types can't be arrays
 	}
 
-	return getArray(env, types, classes, containerType, STRING)
+	return mbean.getArray(env, types, classes, containerType, STRING)
 }
 
-func getArray(env *jnigi.Env, values []string, classes []string, containerType []string, className string) (*jnigi.ObjectRef, error) {
+func (mbean *Client) getArray(env *jnigi.Env, values []string, classes []string, containerType []string, className string) (*jnigi.ObjectRef, error) {
 
 	types := make([]*jnigi.ObjectRef, 0)
 	for i, value := range values {
@@ -206,7 +207,16 @@ func getArray(env *jnigi.Env, values []string, classes []string, containerType [
 
 		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
 		if containerType[i] == "" {
-			obj, err = createObjectReference(env, value, jniClassPath)
+			handler := mbean.ClassHandlers[classes[i]]
+			var parsedVal any
+
+			parsedVal, err = toTypeFromString(value, classes[i])
+
+			if err != nil {
+				return nil, err
+			}
+
+			obj, err = handler.ToJniRepresentation(env, parsedVal)
 		} else {
 			containerClassPath := strings.Replace(containerType[i], ".", "/", -1)
 			obj, err = createContainerReference(env, value, jniClassPath, containerClassPath)

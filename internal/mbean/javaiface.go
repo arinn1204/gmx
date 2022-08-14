@@ -29,7 +29,7 @@ func getInterfaces(env *jnigi.Env, param *jnigi.ObjectRef) ([]*jnigi.ObjectRef, 
 	return env.FromObjectArray(interfaceRef), nil
 }
 
-func checkForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz string) (string, error) {
+func (mbean *Client) checkForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz string) (string, error) {
 	interfaces, err := getInterfaces(env, param)
 
 	if err != nil {
@@ -44,18 +44,18 @@ func checkForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz strin
 			return "", fmt.Errorf("failed to get name of interface::%s", err)
 		}
 
-		var dest []byte
+		var dest string
 
-		if err = fromJavaString(name, env, &dest); err != nil {
+		if err = stringHandler.ToGoRepresentation(env, name, &dest); err != nil {
 			return "", err
 		}
 
-		clazz := string(dest)
-		_ = clazz
-
-		if strings.EqualFold(string(dest), "java.util.List") {
+		if strings.EqualFold(dest, "java.util.List") {
 			dest := make([]any, 0)
-			createGoArrayFromList(param, env, &dest)
+			if err := mbean.createGoArrayFromList(param, env, &dest); err != nil {
+				return "", err
+			}
+
 			arr, err := json.Marshal(dest)
 
 			if err != nil {

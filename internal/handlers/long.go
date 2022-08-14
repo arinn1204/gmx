@@ -24,14 +24,10 @@ func (handler *LongHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jni
 	return intref, err
 }
 
-func (handler *LongHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
-	val := int64(0)
-
-	if err := object.CallMethod(env, "longValue", &val); err != nil {
+func (handler *LongHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	if err := object.CallMethod(env, "longValue", dest); err != nil {
 		return errors.New("failed to create a long::" + err.Error())
 	}
-
-	*dest = val
 
 	return nil
 }

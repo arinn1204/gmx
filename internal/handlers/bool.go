@@ -24,13 +24,9 @@ func (handler *BoolHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jni
 	return intref, err
 }
 
-func (handler *BoolHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
-	val := false
-	if err := object.CallMethod(env, "boolValue", &val); err != nil {
+func (handler *BoolHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	if err := object.CallMethod(env, "booleanValue", dest); err != nil {
 		return errors.New("failed to create a bool::" + err.Error())
 	}
-
-	*dest = val
-
 	return nil
 }

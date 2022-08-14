@@ -13,11 +13,11 @@ type MockIHandler struct {
 }
 
 // ToGoRepresentation provides a mock function with given fields: env, object, dest
-func (_m *MockIHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *interface{}) error {
+func (_m *MockIHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest interface{}) error {
 	ret := _m.Called(env, object, dest)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*jnigi.Env, *jnigi.ObjectRef, *interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(*jnigi.Env, *jnigi.ObjectRef, interface{}) error); ok {
 		r0 = rf(env, object, dest)
 	} else {
 		r0 = ret.Error(0)

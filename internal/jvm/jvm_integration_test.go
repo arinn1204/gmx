@@ -6,6 +6,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/arinn1204/gmx/internal/handlers"
 	"github.com/arinn1204/gmx/internal/mbean"
 
 	"github.com/stretchr/testify/assert"
@@ -64,9 +65,11 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 
 	mbean1, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
+	registerHandlers(mbean1)
 
 	mbean2, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
+	registerHandlers(mbean2)
 
 	testData := []testDataContainer{
 		{
@@ -134,6 +137,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 
 		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 		assert.Nil(t, err)
+		registerHandlers(mbean)
 
 		testData := testDataContainer{
 			initialData: &testData{value: "fan369", className: "java.lang.String", operationName: "putString"},
@@ -156,6 +160,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 		defer unlockCurrentThread(java)
 		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
 		assert.Nil(t, err)
+		registerHandlers(mbean)
 
 		testData := testDataContainer{
 			initialData: &testData{value: "2148493647", className: "java.lang.Long", operationName: "putLong"},
@@ -310,6 +315,7 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
+			registerHandlers(mbean)
 
 			insertData(java.Env, *data.initialData, t, mbean)
 			result := readData(java.Env, *data.readData, t, mbean)
@@ -370,4 +376,13 @@ func lockCurrentThread(java *Java) {
 func unlockCurrentThread(java *Java) {
 	java.jvm.DetachCurrentThread()
 	runtime.UnlockOSThread()
+}
+
+func registerHandlers(bean mbean.BeanExecutor) {
+	bean.RegisterClassHandler(handlers.BOOL_CLASSPATH, &handlers.BoolHandler{})
+	bean.RegisterClassHandler(handlers.DOUBLE_CLASSPATH, &handlers.DoubleHandler{})
+	bean.RegisterClassHandler(handlers.FLOAT_CLASSPATH, &handlers.FloatHandler{})
+	bean.RegisterClassHandler(handlers.INT_CLASSPATH, &handlers.IntHandler{})
+	bean.RegisterClassHandler(handlers.LONG_CLASSPATH, &handlers.LongHandler{})
+	bean.RegisterClassHandler(handlers.STRING_CLASSPATH, &handlers.StringHandler{})
 }

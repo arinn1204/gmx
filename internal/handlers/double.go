@@ -35,12 +35,10 @@ func (handler *DoubleHandler) ToJniRepresentation(env *jnigi.Env, value any) (*j
 	return floatRef, nil
 }
 
-func (handler *DoubleHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
-	val := float64(0)
-	if err := object.CallMethod(env, "doubleValue", &val); err != nil {
+func (handler *DoubleHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	if err := object.CallMethod(env, "doubleValue", dest); err != nil {
 		return errors.New("failed to create a float::" + err.Error())
 	}
-	*dest = val
 
 	return nil
 }

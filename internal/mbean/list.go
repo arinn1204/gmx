@@ -31,7 +31,7 @@ func (iterable *iterableRef[T]) toObjectReference() *jnigi.ObjectRef {
 	return iterable.iterable
 }
 
-func createGoArrayFromList(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) error {
+func (mbean *Client) createGoArrayFromList(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) error {
 	iterator, err := getIterator(env, param)
 
 	if err != nil {
@@ -43,7 +43,7 @@ func createGoArrayFromList(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) 
 		if err != nil {
 			return err
 		}
-		if err = fromJava(value, env, dest); err != nil {
+		if err = mbean.fromJava(value, env, dest); err != nil {
 			return err
 		}
 	}

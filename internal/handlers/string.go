@@ -23,13 +23,15 @@ func (handler *StringHandler) ToJniRepresentation(env *jnigi.Env, value any) (*j
 	return stringRef, nil
 }
 
-func (handler *StringHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
-	strBytes := make([]byte, 0)
-	if err := object.CallMethod(env, "getBytes", strBytes); err != nil {
+// ToGoRepresentiation is the processing to go from a string java class to a string go class
+// Dest must be a string pointer to receive the newly created string
+func (handler *StringHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	var strBytes []byte
+	if err := object.CallMethod(env, "getBytes", &strBytes); err != nil {
 		return errors.New("failed to create a string::" + err.Error())
 	}
 
-	*dest = string(strBytes)
+	(*dest.(*string)) = string(strBytes)
 
 	return nil
 }

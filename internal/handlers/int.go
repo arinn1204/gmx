@@ -24,13 +24,10 @@ func (handler *IntHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnig
 	return intref, err
 }
 
-func (handler *IntHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest *any) error {
-	val := int(0)
-	if err := object.CallMethod(env, "intValue", &val); err != nil {
+func (handler *IntHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	if err := object.CallMethod(env, "intValue", dest); err != nil {
 		return errors.New("failed to create a integer::" + err.Error())
 	}
-
-	*dest = val
 
 	return nil
 }
