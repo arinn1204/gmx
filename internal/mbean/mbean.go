@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -28,6 +29,7 @@ const (
 type Client struct {
 	JmxConnection *jnigi.ObjectRef
 	Env           *jnigi.Env
+	classHandlers map[string]extensions.IClassHandler[any]
 }
 
 // Operation is the operation that is being performed
@@ -59,10 +61,16 @@ type OperationArgs struct {
 //
 // for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
+	RegisterClassHandler(typeName string, handler extensions.IClassHandler[any]) BeanExecutor
 	Execute(operation Operation) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
 	Close()
+}
+
+func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IClassHandler[any]) BeanExecutor {
+	mbean.classHandlers[typeName] = handler
+	return mbean
 }
 
 // WithEnvironment allos the client to spin up a new client using a new environment
