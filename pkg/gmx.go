@@ -116,8 +116,9 @@ func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string,
 		operationArgs = append(
 			operationArgs,
 			mbean.OperationArgs{
-				Value:    arg.Value,
-				JavaType: arg.JavaType,
+				Value:             arg.Value,
+				JavaType:          arg.JavaType,
+				JavaContainerType: arg.JavaContainerType,
 			},
 		)
 	}

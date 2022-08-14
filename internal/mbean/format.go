@@ -71,7 +71,7 @@ func toGoString(env *jnigi.Env, param *jnigi.ObjectRef, outputType string) (stri
 	} else if strings.EqualFold(clazz, "List") {
 		res := make([]any, 0)
 
-		if err := createGoArray(param, env, &res); err != nil {
+		if err := createGoArrayFromList(param, env, &res); err != nil {
 			return "", err
 		}
 

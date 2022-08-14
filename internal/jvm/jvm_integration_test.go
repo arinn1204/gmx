@@ -176,6 +176,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 type testData struct {
 	value         string
 	className     string
+	containerName string
 	operationName string
 }
 
@@ -192,6 +193,9 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 	}
 
 	container := []testDataContainer{
+		/*
+			PRIMITIVE TESTING
+		*/
 		{
 			initialData: &testData{value: "fan369", className: "java.lang.String", operationName: "putString"},
 			readData:    &testData{value: "messi", operationName: "getString"},
@@ -227,6 +231,15 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			readData:    &testData{value: "messi", operationName: "getBoolean"},
 			testName:    "BooleanTesting",
 			expectedVal: "true",
+		},
+		/**
+		LIST TESTING
+		*/
+		{
+			initialData: &testData{value: "[1,2,3]", className: "java.lang.Integer", containerName: "java.util.List", operationName: "putList"},
+			readData:    &testData{value: "messi", operationName: "getList"},
+			testName:    "IntListTesting",
+			expectedVal: "[1,2,3]",
 		},
 	}
 
@@ -279,8 +292,9 @@ func insertData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExec
 				JavaType: "java.lang.String",
 			},
 			{
-				Value:    data.value,
-				JavaType: data.className,
+				Value:             data.value,
+				JavaType:          data.className,
+				JavaContainerType: data.containerName,
 			},
 		},
 	}

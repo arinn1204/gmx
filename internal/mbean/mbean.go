@@ -113,7 +113,7 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 		return errors.New("failed to create ObjectName::" + err.Error())
 	}
 
-	names, err := getNameArray(env, operation.Args)
+	names, err := getValueArray(env, operation.Args)
 	if names != nil {
 		defer env.DeleteLocalRef(names)
 	}
@@ -151,38 +151,56 @@ func invoke(env *jnigi.Env, operation Operation, mbean *Client, outParam *jnigi.
 	return nil
 }
 
-func getNameArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
+func getValueArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
 	values := make([]string, 0)
 	classes := make([]string, 0)
+	containerType := make([]string, 0)
 
 	for _, arg := range args {
 		values = append(values, arg.Value)
 		classes = append(classes, arg.JavaType)
+		containerType = append(containerType, arg.JavaContainerType)
 	}
 
-	return getArray(env, values, classes, OBJECT)
+	return getArray(env, values, classes, containerType, OBJECT)
 }
 
 func getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
 	types := make([]string, 0)
 	classes := make([]string, 0)
+	containerType := make([]string, 0)
 
 	for _, arg := range args {
-		types = append(types, arg.JavaType)
+		var paramType string
+		if arg.JavaContainerType == "" {
+			paramType = arg.JavaType
+		} else {
+			paramType = arg.JavaContainerType
+		}
+
+		types = append(types, paramType)
 		classes = append(classes, STRING)
+		containerType = append(containerType, "") // types can't be arrays
 	}
 
-	return getArray(env, types, classes, STRING)
+	return getArray(env, types, classes, containerType, STRING)
 }
 
-func getArray(env *jnigi.Env, values []string, classes []string, className string) (*jnigi.ObjectRef, error) {
+func getArray(env *jnigi.Env, values []string, classes []string, containerType []string, className string) (*jnigi.ObjectRef, error) {
 
 	types := make([]*jnigi.ObjectRef, 0)
 	for i, value := range values {
 
-		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
+		var err error
+		var obj *jnigi.ObjectRef
 
-		obj, err := createObjectReference(env, value, jniClassPath)
+		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
+		if containerType[i] == "" {
+			obj, err = createObjectReference(env, value, jniClassPath)
+		} else {
+			containerClassPath := strings.Replace(containerType[i], ".", "/", -1)
+			obj, err = createContainerReference(env, value, jniClassPath, containerClassPath)
+		}
 
 		if err != nil {
 			return nil, err
