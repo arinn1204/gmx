@@ -6,20 +6,16 @@ import (
 	"tekao.net/jnigi"
 )
 
-type listRef[T any] struct {
-	list *jnigi.ObjectRef
-}
-
-func createJavaList[T any](env *jnigi.Env, size int) (*listRef[T], error) {
+func createJavaList[T any](env *jnigi.Env, size int) (*iterableRef[T], error) {
 	arrayList, err := env.NewObject("java/util/ArrayList", size)
 	if err != nil {
 		return nil, errors.New("failed to create an arraylist::" + err.Error())
 	}
 
-	return &listRef[T]{list: arrayList}, nil
+	return &iterableRef[T]{iterable: arrayList}, nil
 }
 
-func (list *listRef[T]) add(env *jnigi.Env, item T) error {
+func (iterable *iterableRef[T]) add(env *jnigi.Env, item T) error {
 	res := false
 	param, err := createObjectReferenceFromValue(env, item)
 
@@ -28,11 +24,11 @@ func (list *listRef[T]) add(env *jnigi.Env, item T) error {
 	}
 
 	env.PrecalculateSignature("(Ljava/lang/Object;)Z") //since we don't have type params for the list
-	return list.list.CallMethod(env, "add", &res, param)
+	return iterable.iterable.CallMethod(env, "add", &res, param)
 }
 
-func (list *listRef[T]) toObjectReference() *jnigi.ObjectRef {
-	return list.list
+func (iterable *iterableRef[T]) toObjectReference() *jnigi.ObjectRef {
+	return iterable.iterable
 }
 
 func createGoArrayFromList(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) error {
@@ -42,8 +38,8 @@ func createGoArrayFromList(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) 
 		return err
 	}
 
-	for hasNext(env, iterator) {
-		value, err := getNext(env, iterator)
+	for iterator.hasNext(env) {
+		value, err := iterator.getNext(env)
 		if err != nil {
 			return err
 		}
