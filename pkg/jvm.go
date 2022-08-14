@@ -6,7 +6,9 @@ import (
 	"log"
 	"sync"
 
+	"github.com/arinn1204/gmx/internal/handlers"
 	"github.com/arinn1204/gmx/internal/mbean"
+	"github.com/arinn1204/gmx/pkg/extensions"
 
 	"github.com/arinn1204/gmx/internal/jvm"
 
@@ -21,12 +23,38 @@ func init() {
 	java = &jvm.Java{}
 }
 
+// RegisterHandler is the method to use when wanting to register additional handlers
+// By default this client will handle everything in internal/handlers
+func (client *Client) RegisterHandler(typeName string, handler extensions.IHandler) {
+	client.handlers[typeName] = handler
+
+	for _, bean := range client.mbeans {
+		bean.RegisterClassHandler(typeName, handler)
+	}
+}
+
+func (client *Client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
+	for typeName, handler := range client.handlers {
+		bean.RegisterClassHandler(typeName, handler)
+	}
+
+	client.mbeans[id] = bean
+}
+
 // Initialize is the initial method to create a GMX client.
 // This will initialize the JVM if necessary as well as setting up the object
 func (client *Client) Initialize() error {
 	startJvm()
 
 	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
+	client.handlers = make(map[string]extensions.IHandler)
+
+	client.RegisterHandler(handlers.JNI_BOOLEAN, &handlers.BoolHandler{})
+	client.RegisterHandler(handlers.JNI_DOUBLE, &handlers.DoubleHandler{})
+	client.RegisterHandler(handlers.JNI_FLOAT, &handlers.FloatHandler{})
+	client.RegisterHandler(handlers.JNI_INTEGER, &handlers.IntHandler{})
+	client.RegisterHandler(handlers.JNI_LONG, &handlers.LongHandler{})
+	client.RegisterHandler(handlers.JNI_STRING, &handlers.StringHandler{})
 
 	return nil
 }
@@ -45,7 +73,7 @@ func (client *Client) Connect(hostname string, port int) (*uuid.UUID, error) {
 
 	id := uuid.New()
 
-	client.mbeans[id] = bean
+	client.registerNewBean(id, bean)
 
 	return &id, nil
 }

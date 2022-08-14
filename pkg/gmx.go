@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/arinn1204/gmx/internal/mbean"
+	"github.com/arinn1204/gmx/pkg/extensions"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +13,8 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type Client struct {
-	mbeans map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
+	mbeans   map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
+	handlers map[string]extensions.IHandler   // The map of type handlers to be used
 }
 
 // MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
@@ -21,6 +23,7 @@ type MBeanOperator interface {
 	Initialize() (*Client, error)
 	// This will close out the JVM and free up any clients that are remaining
 	Close()
+	RegisterHandler(typeName string, handler extensions.IHandler) // This will register additional handlers
 	// This will initialize a new MBean connection
 	Connect(hostname string, port int) (*uuid.UUID, error)
 	// This will execute the given operation against every MBean that has already been created.
