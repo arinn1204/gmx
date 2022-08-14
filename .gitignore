@@ -36,3 +36,4 @@ gmx
 java/JNIConnector.class.go
 
 dist/
+*.log
