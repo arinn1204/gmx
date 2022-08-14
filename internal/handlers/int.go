@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	INTEGER = "java/lang/Integer"
+	JNI_INTEGER = "java/lang/Integer"
 )
 
 type IntHandler struct{}
 
 func (handler *IntHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
-	intref, err := env.NewObject(INTEGER, value.(int))
+	intref, err := env.NewObject(JNI_INTEGER, value.(int))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create integer from %d::%s", value, err)

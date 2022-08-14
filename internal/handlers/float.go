@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	FLOAT = "java/lang/Float"
+	JNI_FLOAT = "java/lang/Float"
 )
 
 type FloatHandler struct{}
@@ -25,9 +25,9 @@ func (handler *FloatHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jn
 
 	defer env.DeleteLocalRef(strRef)
 
-	floatRef := jnigi.NewObjectRef(FLOAT)
+	floatRef := jnigi.NewObjectRef(JNI_FLOAT)
 
-	if err = env.CallStaticMethod(FLOAT, "valueOf", floatRef, strRef); err != nil {
+	if err = env.CallStaticMethod(JNI_FLOAT, "valueOf", floatRef, strRef); err != nil {
 		return nil, errors.New("failed to convert to a float::" + err.Error())
 	}
 

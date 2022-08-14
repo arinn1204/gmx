@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	LONG = "java/lang/Long"
+	JNI_LONG = "java/lang/Long"
 )
 
 type LongHandler struct{}
 
 func (handler *LongHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
-	intref, err := env.NewObject(LONG, value.(int64))
+	intref, err := env.NewObject(JNI_LONG, value.(int64))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create integer from %d::%s", value, err)
