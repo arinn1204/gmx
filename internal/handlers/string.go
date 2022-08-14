@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JNI_STRING = "java/lang/String"
+	JNI_STRING       = "java/lang/String"
+	STRING_CLASSPATH = "java.lang.String"
 )
 
 type StringHandler struct{}

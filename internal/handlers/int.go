@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JNI_INTEGER = "java/lang/Integer"
+	JNI_INTEGER   = "java/lang/Integer"
+	INT_CLASSPATH = "java.lang.Integer"
 )
 
 type IntHandler struct{}

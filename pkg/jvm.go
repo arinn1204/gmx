@@ -49,12 +49,12 @@ func (client *Client) Initialize() error {
 	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
 	client.handlers = make(map[string]extensions.IHandler)
 
-	client.RegisterHandler(handlers.JNI_BOOLEAN, &handlers.BoolHandler{})
-	client.RegisterHandler(handlers.JNI_DOUBLE, &handlers.DoubleHandler{})
-	client.RegisterHandler(handlers.JNI_FLOAT, &handlers.FloatHandler{})
-	client.RegisterHandler(handlers.JNI_INTEGER, &handlers.IntHandler{})
-	client.RegisterHandler(handlers.JNI_LONG, &handlers.LongHandler{})
-	client.RegisterHandler(handlers.JNI_STRING, &handlers.StringHandler{})
+	client.RegisterHandler(handlers.BOOL_CLASSPATH, &handlers.BoolHandler{})
+	client.RegisterHandler(handlers.DOUBLE_CLASSPATH, &handlers.DoubleHandler{})
+	client.RegisterHandler(handlers.FLOAT_CLASSPATH, &handlers.FloatHandler{})
+	client.RegisterHandler(handlers.INT_CLASSPATH, &handlers.IntHandler{})
+	client.RegisterHandler(handlers.LONG_CLASSPATH, &handlers.LongHandler{})
+	client.RegisterHandler(handlers.STRING_CLASSPATH, &handlers.StringHandler{})
 
 	return nil
 }

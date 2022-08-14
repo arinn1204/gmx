@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JNI_DOUBLE = "java/lang/Double"
+	JNI_DOUBLE       = "java/lang/Double"
+	DOUBLE_CLASSPATH = "java.lang.Double"
 )
 
 type DoubleHandler struct{}

@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JNI_FLOAT = "java/lang/Float"
+	JNI_FLOAT       = "java/lang/Float"
+	FLOAT_CLASSPATH = "java.lang.Float"
 )
 
 type FloatHandler struct{}

@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JNI_LONG = "java/lang/Long"
+	JNI_LONG       = "java/lang/Long"
+	LONG_CLASSPATH = "java.lang.Long"
 )
 
 type LongHandler struct{}

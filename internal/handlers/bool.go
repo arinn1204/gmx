@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	JNI_BOOLEAN = "java/lang/Boolean"
+	JNI_BOOLEAN    = "java/lang/Boolean"
+	BOOL_CLASSPATH = "java.lang.Boolean"
 )
 
 type BoolHandler struct{}
