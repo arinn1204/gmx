@@ -35,11 +35,11 @@ func (client *Client) RegisterClassHandler(typeName string, handler extensions.I
 
 // RegisterInterfaceHandler is the method to use when wanting to register
 // additional handlers that will blanket apply to a Java interface
-func (client *Client) RegisterInterfaceHandler(typeName string, handler extensions.IHandler) {
+func (client *Client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) {
 	client.interfaceHandlers[typeName] = handler
 
 	for _, bean := range client.mbeans {
-		bean.RegisterClassHandler(typeName, handler)
+		bean.RegisterInterfaceHandler(typeName, handler)
 	}
 }
 
@@ -62,6 +62,7 @@ func (client *Client) Initialize() error {
 
 	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
 	client.classHandlers = make(map[string]extensions.IHandler)
+	client.interfaceHandlers = make(map[string]extensions.InterfaceHandler)
 
 	client.RegisterClassHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
 	client.RegisterClassHandler(handlers.DoubleClasspath, &handlers.DoubleHandler{})
@@ -69,6 +70,8 @@ func (client *Client) Initialize() error {
 	client.RegisterClassHandler(handlers.IntClasspath, &handlers.IntHandler{})
 	client.RegisterClassHandler(handlers.LongClasspath, &handlers.LongHandler{})
 	client.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
+
+	client.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: client.classHandlers})
 
 	return nil
 }

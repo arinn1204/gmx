@@ -126,29 +126,6 @@ func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
 	return stringRef, nil
 }
 
-func createFloat(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
-	return createFloatingPointValue(env, str, FLOAT)
-}
-
-func createDouble(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
-	return createFloatingPointValue(env, str, DOUBLE)
-}
-
-func createFloatingPointValue(env *jnigi.Env, str string, class string) (*jnigi.ObjectRef, error) {
-	stringifiedFloat, err := createString(env, str)
-
-	if err != nil {
-		return nil, err
-	}
-
-	floatRef := jnigi.NewObjectRef(class)
-	if err = env.CallStaticMethod(class, "valueOf", floatRef, stringifiedFloat); err != nil {
-		return nil, fmt.Errorf("failed to create a %s from stringref::%s", class, err)
-	}
-
-	return floatRef, nil
-}
-
 func toTypeFromString(value string, className string) (any, error) {
 	var val any
 	var err error

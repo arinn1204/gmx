@@ -3,7 +3,6 @@ package mbean
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
@@ -30,7 +29,7 @@ type Client struct {
 	JmxConnection     *jnigi.ObjectRef
 	Env               *jnigi.Env
 	ClassHandlers     map[string]extensions.IHandler
-	InterfaceHandlers map[string]extensions.IHandler
+	InterfaceHandlers map[string]extensions.InterfaceHandler
 }
 
 // Operation is the operation that is being performed
@@ -63,7 +62,7 @@ type OperationArgs struct {
 // for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
 	RegisterClassHandler(typeName string, handler extensions.IHandler) error
-	RegisterInterfaceHandler(typeName string, handler extensions.IHandler) error
+	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) error
 	Execute(operation Operation) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
@@ -79,7 +78,7 @@ func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IH
 
 // RegisterInterfaceHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
-func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extensions.IHandler) error {
+func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) error {
 	mbean.InterfaceHandlers[typeName] = handler
 	return nil
 }
@@ -177,13 +176,16 @@ func (mbean *Client) getArray(env *jnigi.Env, args []OperationArgs, methodTypes 
 		var err error
 		var obj *jnigi.ObjectRef
 
-		if arg.JavaContainerType != "" {
+		var exists bool
+		var handler extensions.IHandler
+		var interfaceHandler extensions.InterfaceHandler
 
-			jniClassPath := strings.Replace(arg.JavaType, ".", "/", -1)
-			containerClassPath := strings.Replace(methodTypes[i], ".", "/", -1)
-			obj, err = createContainerReference(env, arg.Value, jniClassPath, containerClassPath)
+		// the containers are always assumed to be interfaces
+		if interfaceHandler, exists = mbean.InterfaceHandlers[methodTypes[i]]; exists && arg.JavaContainerType != "" {
 
-		} else if handler, exists := mbean.ClassHandlers[methodTypes[i]]; exists {
+			obj, err = interfaceHandler.ToJniRepresentation(env, arg.JavaType, arg.Value)
+
+		} else if handler, exists = mbean.ClassHandlers[methodTypes[i]]; exists {
 			var parsedVal any
 
 			parsedVal, err = toTypeFromString(arg.Value, methodTypes[i])

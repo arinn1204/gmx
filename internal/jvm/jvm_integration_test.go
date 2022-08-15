@@ -385,4 +385,8 @@ func registerHandlers(bean mbean.BeanExecutor) {
 	bean.RegisterClassHandler(handlers.IntClasspath, &handlers.IntHandler{})
 	bean.RegisterClassHandler(handlers.LongClasspath, &handlers.LongHandler{})
 	bean.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
+
+	client := bean.(*mbean.Client)
+
+	bean.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: client.ClassHandlers})
 }

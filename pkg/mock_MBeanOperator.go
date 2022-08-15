@@ -125,8 +125,13 @@ func (_m *MockMBeanOperator) Initialize() (*Client, error) {
 	return r0, r1
 }
 
-// RegisterHandler provides a mock function with given fields: typeName, handler
-func (_m *MockMBeanOperator) RegisterHandler(typeName string, handler extensions.IHandler) {
+// RegisterClassHandler provides a mock function with given fields: typeName, handler
+func (_m *MockMBeanOperator) RegisterClassHandler(typeName string, handler extensions.IHandler) {
+	_m.Called(typeName, handler)
+}
+
+// RegisterInterfaceHandler provides a mock function with given fields: typeName, handler
+func (_m *MockMBeanOperator) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) {
 	_m.Called(typeName, handler)
 }
 
