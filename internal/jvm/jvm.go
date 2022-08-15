@@ -61,10 +61,10 @@ func (java *Java) CreateJVM() (IJava, error) {
 		return nil, errors.New("Failed to load the JVM::" + err.Error())
 	}
 
-	args := []string{"-Xcheck:jni"}
+	// args := []string{"-Xcheck:jni"}
 
 	runtime.LockOSThread()
-	jvm, env, err := jnigi.CreateJVM(jnigi.NewJVMInitArgs(false, true, jnigi.DEFAULT_VERSION, args))
+	jvm, env, err := jnigi.CreateJVM(jnigi.NewJVMInitArgs(false, true, jnigi.DEFAULT_VERSION, nil))
 
 	if err != nil {
 		return nil, errors.New("Failed to create the JVM::" + err.Error())
