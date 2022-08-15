@@ -64,6 +64,8 @@ type batchExecutionResult struct {
 
 // ExecuteAgainstAll will execute a single command against every mbean that is currently registered.
 // This will return a mapping of all results and errors, based on the UUID that the connection has been assigned.
+//
+// All executions will be run in separate go routines, so this needs to be planned for accordingly
 func (client *Client) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	results := make(chan batchExecutionResult, len(client.mbeans))
 	wg := &sync.WaitGroup{}
