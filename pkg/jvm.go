@@ -48,6 +48,10 @@ func (client *Client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
 		bean.RegisterClassHandler(typeName, handler)
 	}
 
+	for typeName, handler := range client.interfaceHandlers {
+		bean.RegisterInterfaceHandler(typeName, handler)
+	}
+
 	client.mbeans[id] = bean
 }
 
