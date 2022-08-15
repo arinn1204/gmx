@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/arinn1204/gmx/internal/handlers"
 	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
@@ -144,11 +143,13 @@ func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi
 		return err
 	}
 
-	types, err := mbean.getTypeArray(env, operation.Args)
-
-	if types != nil {
-		defer env.DeleteLocalRef(types)
+	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
+	defer env.DeleteLocalRef(mBeanServerConnector)
+	if err = mbean.JmxConnection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+		return errors.New("failed to create the mbean server connection::" + err.Error())
 	}
+
+	types, err := getOperationParameterTypes(env, objectName, mBeanServerConnector, operation.Operation)
 
 	if err != nil {
 		return err
@@ -158,12 +159,6 @@ func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi
 	defer env.DeleteLocalRef(operationRef)
 	if err != nil {
 		return err
-	}
-
-	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	defer env.DeleteLocalRef(mBeanServerConnector)
-	if err = mbean.JmxConnection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
-		return errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
 	if err = mBeanServerConnector.CallMethod(env, "invoke", outParam, objectName, operationRef, names, types); err != nil {
@@ -185,27 +180,6 @@ func (mbean *Client) getValueArray(env *jnigi.Env, args []OperationArgs) (*jnigi
 	}
 
 	return mbean.getArray(env, values, classes, containerType, OBJECT)
-}
-
-func (mbean *Client) getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.ObjectRef, error) {
-	types := make([]string, 0)
-	classes := make([]string, 0)
-	containerType := make([]string, 0)
-
-	for _, arg := range args {
-		var paramType string
-		if arg.JavaContainerType == "" {
-			paramType = arg.JavaType
-		} else {
-			paramType = arg.JavaContainerType
-		}
-
-		types = append(types, paramType)
-		classes = append(classes, handlers.StringClasspath)
-		containerType = append(containerType, "") // types can't be arrays
-	}
-
-	return mbean.getArray(env, types, classes, containerType, STRING)
 }
 
 func (mbean *Client) getArray(env *jnigi.Env, values []string, classes []string, containerType []string, className string) (*jnigi.ObjectRef, error) {
