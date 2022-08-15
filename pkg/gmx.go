@@ -13,8 +13,9 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type Client struct {
-	mbeans   map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
-	handlers map[string]extensions.IHandler   // The map of type handlers to be used
+	mbeans            map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
+	classHandlers     map[string]extensions.IHandler   // The map of type handlers to be used
+	interfaceHandlers map[string]extensions.IHandler
 }
 
 // MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
@@ -23,7 +24,8 @@ type MBeanOperator interface {
 	Initialize() (*Client, error)
 	// This will close out the JVM and free up any clients that are remaining
 	Close()
-	RegisterHandler(typeName string, handler extensions.IHandler) // This will register additional handlers
+	RegisterClassHandler(typeName string, handler extensions.IHandler)     // This will register additional handlers
+	RegisterInterfaceHandler(typeName string, handler extensions.IHandler) // This will register additional handlers
 	// This will initialize a new MBean connection
 	Connect(hostname string, port int) (*uuid.UUID, error)
 	// This will execute the given operation against every MBean that has already been created.

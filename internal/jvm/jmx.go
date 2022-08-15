@@ -27,9 +27,10 @@ func (java *Java) CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) 
 	}
 
 	mbean := &mbean.Client{
-		JmxConnection: jmxConnector,
-		Env:           env,
-		ClassHandlers: make(map[string]extensions.IHandler),
+		JmxConnection:     jmxConnector,
+		Env:               env,
+		ClassHandlers:     make(map[string]extensions.IHandler),
+		InterfaceHandlers: make(map[string]extensions.IHandler),
 	}
 
 	return mbean, err

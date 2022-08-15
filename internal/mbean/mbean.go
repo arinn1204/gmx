@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/arinn1204/gmx/internal/handlers"
-	extensions "github.com/arinn1204/gmx/pkg/extensions"
+	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -28,9 +28,10 @@ const (
 // JmxConnection is the living connection that was created when `CreateMBeanConnection` was called to create the Client
 // Env is the environment that belongs to this bean, this will not always match the JVM env!
 type Client struct {
-	JmxConnection *jnigi.ObjectRef
-	Env           *jnigi.Env
-	ClassHandlers map[string]extensions.IHandler
+	JmxConnection     *jnigi.ObjectRef
+	Env               *jnigi.Env
+	ClassHandlers     map[string]extensions.IHandler
+	InterfaceHandlers map[string]extensions.IHandler
 }
 
 // Operation is the operation that is being performed
@@ -63,6 +64,7 @@ type OperationArgs struct {
 // for example: cleaning up the JMX connection and deleting the reference
 type BeanExecutor interface {
 	RegisterClassHandler(typeName string, handler extensions.IHandler) error
+	RegisterInterfaceHandler(typeName string, handler extensions.IHandler) error
 	Execute(operation Operation) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
@@ -73,6 +75,13 @@ type BeanExecutor interface {
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) error {
 	mbean.ClassHandlers[typeName] = handler
+	return nil
+}
+
+// RegisterInterfaceHandler will register the given class handlers
+// For a class handler to be valid it must implement a form of IClassHandler
+func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extensions.IHandler) error {
+	mbean.InterfaceHandlers[typeName] = handler
 	return nil
 }
 

@@ -23,10 +23,20 @@ func init() {
 	java = &jvm.Java{}
 }
 
-// RegisterHandler is the method to use when wanting to register additional handlers
+// RegisterClassHandler is the method to use when wanting to register additional handlers
 // By default this client will handle everything in internal/handlers
-func (client *Client) RegisterHandler(typeName string, handler extensions.IHandler) {
-	client.handlers[typeName] = handler
+func (client *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) {
+	client.classHandlers[typeName] = handler
+
+	for _, bean := range client.mbeans {
+		bean.RegisterClassHandler(typeName, handler)
+	}
+}
+
+// RegisterInterfaceHandler is the method to use when wanting to register
+// additional handlers that will blanket apply to a Java interface
+func (client *Client) RegisterInterfaceHandler(typeName string, handler extensions.IHandler) {
+	client.interfaceHandlers[typeName] = handler
 
 	for _, bean := range client.mbeans {
 		bean.RegisterClassHandler(typeName, handler)
@@ -34,7 +44,7 @@ func (client *Client) RegisterHandler(typeName string, handler extensions.IHandl
 }
 
 func (client *Client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
-	for typeName, handler := range client.handlers {
+	for typeName, handler := range client.classHandlers {
 		bean.RegisterClassHandler(typeName, handler)
 	}
 
@@ -47,14 +57,14 @@ func (client *Client) Initialize() error {
 	startJvm()
 
 	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
-	client.handlers = make(map[string]extensions.IHandler)
+	client.classHandlers = make(map[string]extensions.IHandler)
 
-	client.RegisterHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
-	client.RegisterHandler(handlers.DoubleClasspath, &handlers.DoubleHandler{})
-	client.RegisterHandler(handlers.FloatClasspath, &handlers.FloatHandler{})
-	client.RegisterHandler(handlers.IntClasspath, &handlers.IntHandler{})
-	client.RegisterHandler(handlers.LongClasspath, &handlers.LongHandler{})
-	client.RegisterHandler(handlers.StringClasspath, &handlers.StringHandler{})
+	client.RegisterClassHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
+	client.RegisterClassHandler(handlers.DoubleClasspath, &handlers.DoubleHandler{})
+	client.RegisterClassHandler(handlers.FloatClasspath, &handlers.FloatHandler{})
+	client.RegisterClassHandler(handlers.IntClasspath, &handlers.IntHandler{})
+	client.RegisterClassHandler(handlers.LongClasspath, &handlers.LongHandler{})
+	client.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
 
 	return nil
 }
