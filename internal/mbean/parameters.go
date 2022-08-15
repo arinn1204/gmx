@@ -21,11 +21,11 @@ func deleteLocalArray(env *jnigi.Env, arr []*jnigi.ObjectRef) {
 func getOperationParameterTypes(env *jnigi.Env,
 	objectName *jnigi.ObjectRef,
 	serverConnection *jnigi.ObjectRef,
-	operationName string) (*jnigi.ObjectRef, error) {
+	operationName string) (*jnigi.ObjectRef, []string, error) {
 
 	operations, err := getBeanOperations(env, objectName, serverConnection)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer deleteLocalArray(env, operations)
@@ -33,7 +33,7 @@ func getOperationParameterTypes(env *jnigi.Env,
 	operatonRef, err := getOperation(env, operations, operationName)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer env.DeleteLocalRef(operatonRef)
@@ -41,7 +41,7 @@ func getOperationParameterTypes(env *jnigi.Env,
 	types, err := getSignature(env, operatonRef)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	typeReferences := make([]*jnigi.ObjectRef, 0)
@@ -51,13 +51,13 @@ func getOperationParameterTypes(env *jnigi.Env,
 
 		if err != nil {
 			defer deleteLocalArray(env, typeReferences)
-			return nil, err
+			return nil, nil, err
 		}
 
 		typeReferences = append(typeReferences, ref)
 	}
 
-	return env.ToObjectArray(typeReferences, handlers.StringJniRepresentation), nil
+	return env.ToObjectArray(typeReferences, handlers.StringJniRepresentation), types, nil
 }
 
 func getSignature(env *jnigi.Env, operationInfo *jnigi.ObjectRef) ([]string, error) {
