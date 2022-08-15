@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -16,11 +17,16 @@ const (
 // FloatHandler is the type that can convert to and from java.lang.Float
 type FloatHandler struct{}
 
+var strHandler extensions.IHandler
+
+func init() {
+	strHandler = &StringHandler{}
+}
+
 // ToJniRepresentation is the implementation that will convert from a go type
 // to a JNI representation of that type
 func (handler *FloatHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
 	stringifiedValue := strconv.FormatFloat(float64(value.(float32)), 'f', -1, 32)
-	strHandler := &StringHandler{}
 
 	strRef, err := strHandler.ToJniRepresentation(env, stringifiedValue)
 

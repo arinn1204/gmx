@@ -20,8 +20,6 @@ type DoubleHandler struct{}
 // to a JNI representation of that type
 func (handler *DoubleHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
 	stringifiedValue := strconv.FormatFloat(value.(float64), 'f', -1, 64)
-	strHandler := &StringHandler{}
-
 	strRef, err := strHandler.ToJniRepresentation(env, stringifiedValue)
 
 	if err != nil {
