@@ -195,6 +195,111 @@ type testDataContainer struct {
 	expectedVal any
 }
 
+func TestCanCallIntoJmxAndGetResultWithMaps(t *testing.T) {
+	floatValues := []any{rand.Float32(), rand.Float32(), rand.Float32()}
+	doubleValues := []any{rand.Float64(), rand.Float64(), rand.Float64()}
+	intValues := []any{int32(rand.Int31()), int32(rand.Int31()), int32(rand.Int31())}
+	longValues := []any{int64(rand.Int63()), int64(rand.Int63()), int64(rand.Int63())}
+	boolValues := []any{true, false}
+	stringValues := []any{"hello", "world", "whatsgoinonyo"}
+
+	valueMapping := map[string][]any{
+		"Integer": intValues,
+		"Float":   floatValues,
+		"Double":  doubleValues,
+		"Long":    longValues,
+		"Boolean": boolValues,
+		"String":  stringValues,
+	}
+	primitiveTypes := []string{"Integer", "Long", "Float", "Double", "Boolean", "String"}
+
+	for _, valueType := range primitiveTypes {
+		t.Run(fmt.Sprintf("TestJmxAndGetResultsFor_Map<String,%s>", valueType), func(t *testing.T) {
+			lockCurrentThread(java)
+			defer unlockCurrentThread(java)
+
+			values := valueMapping[valueType]
+
+			strBytes, err := json.Marshal(values)
+			assert.Nil(t, err)
+
+			className := fmt.Sprintf("java.lang.%s", valueType)
+
+			data := testData{value: string(strBytes), className: className, operationName: fmt.Sprintf("put%s", valueType)}
+
+			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+			assert.Nil(t, err)
+			registerHandlers(mbean)
+
+			insertData(java.Env, data, t, mbean)
+
+			data = testData{value: valueType, operationName: "getMap"}
+
+			stringData := readData(java.Env, data, t, mbean)
+
+			dest := make([]any, 0)
+			switch className {
+			case handlers.FloatClasspath:
+				var typedDest []float32
+				err = json.Unmarshal([]byte(stringData), &typedDest)
+				for _, f := range typedDest {
+					dest = append(dest, f)
+				}
+			case handlers.LongClasspath:
+				var typedDest []int64
+				err = json.Unmarshal([]byte(stringData), &typedDest)
+				for _, f := range typedDest {
+					dest = append(dest, f)
+				}
+			case handlers.IntClasspath:
+				var typedDest []int32
+				err = json.Unmarshal([]byte(stringData), &typedDest)
+				for _, f := range typedDest {
+					dest = append(dest, f)
+				}
+			case handlers.StringClasspath:
+				var typedDest []string
+				err = json.Unmarshal([]byte(stringData), &typedDest)
+				for _, f := range typedDest {
+					dest = append(dest, f)
+				}
+			case handlers.BoolClasspath:
+				var typedDest []bool
+				err = json.Unmarshal([]byte(stringData), &typedDest)
+				for _, f := range typedDest {
+					dest = append(dest, f)
+				}
+			case handlers.DoubleClasspath:
+				var typedDest []float64
+				err = json.Unmarshal([]byte(stringData), &typedDest)
+				for _, f := range typedDest {
+					dest = append(dest, f)
+				}
+			}
+
+			assert.Nil(t, err)
+
+			assert.Equal(t, len(values), len(dest))
+
+			containsCounter := 0
+
+			for _, value := range values {
+				for _, item := range dest {
+					if item == value {
+						containsCounter++
+					}
+				}
+			}
+
+			if len(values) != containsCounter {
+				assert.Fail(t, fmt.Sprintf("expected '%s' to be equal to '%s'", string(strBytes), stringData))
+			}
+		})
+
+	}
+
+}
+
 func TestCanCallIntoJmxAndGetResultWithCollections(t *testing.T) {
 	floatValues := []any{rand.Float32(), rand.Float32(), rand.Float32()}
 	doubleValues := []any{rand.Float64(), rand.Float64(), rand.Float64()}

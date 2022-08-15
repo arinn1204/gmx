@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/arinn1204/gmx/internal/handlers"
 	"tekao.net/jnigi"
 )
 
@@ -43,23 +44,39 @@ func (mbean *Client) checkForKnownInterfaces(env *jnigi.Env, param *jnigi.Object
 			return "", fmt.Errorf("failed to get name of interface::%s", err)
 		}
 
-		var dest string
+		var cls string
 
-		if err = stringHandler.ToGoRepresentation(env, name, &dest); err != nil {
+		if err = stringHandler.ToGoRepresentation(env, name, &cls); err != nil {
 			return "", err
 		}
 
-		if handler, exists := mbean.InterfaceHandlers[dest]; exists {
-			dest := make([]any, 0)
+		if handler, exists := mbean.InterfaceHandlers[cls]; exists {
 
-			if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
-				return "", err
-			}
-			arr, err := json.Marshal(dest)
+			var arr []byte
+			if cls == handlers.MapClassPath {
+				dest := make(map[string]any)
 
-			if err != nil {
-				return "", errors.New("failed to turn list into json array::" + err.Error())
+				if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
+					return "", err
+				}
+				arr, err = json.Marshal(dest)
+
+				if err != nil {
+					return "", errors.New("failed to turn list into json array::" + err.Error())
+				}
+
+			} else {
+				dest := make([]any, 0)
+				if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
+					return "", err
+				}
+				arr, err = json.Marshal(dest)
+
+				if err != nil {
+					return "", errors.New("failed to turn list into json array::" + err.Error())
+				}
 			}
+
 			return string(arr), nil
 		}
 	}
