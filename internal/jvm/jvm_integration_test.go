@@ -1,7 +1,10 @@
 package jvm
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"math/rand"
 	"runtime"
 	"sync"
 	"testing"
@@ -192,7 +195,122 @@ type testDataContainer struct {
 	expectedVal any
 }
 
-func TestCanCallIntoJmxAndGetResult(t *testing.T) {
+func TestCanCallIntoJmxAndGetResultWithCollections(t *testing.T) {
+	floatValues := []any{rand.Float32(), rand.Float32(), rand.Float32()}
+	doubleValues := []any{rand.Float64(), rand.Float64(), rand.Float64()}
+	intValues := []any{int32(rand.Int31()), int32(rand.Int31()), int32(rand.Int31())}
+	longValues := []any{int64(rand.Int63()), int64(rand.Int63()), int64(rand.Int63())}
+	boolValues := []any{true, false}
+	stringValues := []any{"hello", "world", "whatsgoinonyo"}
+
+	valueMapping := map[string][]any{
+		"Integer": intValues,
+		"Float":   floatValues,
+		"Double":  doubleValues,
+		"Long":    longValues,
+		"Boolean": boolValues,
+		"String":  stringValues,
+	}
+	collectionTypes := []string{"List", "Set"}
+	primitiveTypes := []string{"Integer", "Long", "Float", "Double", "Boolean", "String"}
+
+	// {
+	// 	initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Integer", containerName: "java.util.List", operationName: "putList"},
+	// 	readData:    &testData{value: "messi", operationName: "getList"},
+	// 	testName:    "IntListTesting",
+	// 	expectedVal: "[1,2,3]",
+	// },
+
+	for _, collection := range collectionTypes {
+		for _, primitiveType := range primitiveTypes {
+			t.Run(fmt.Sprintf("TestJmxAndGetResultsFor_%s<%s>", collection, primitiveType), func(t *testing.T) {
+				lockCurrentThread(java)
+				defer unlockCurrentThread(java)
+
+				values := valueMapping[primitiveType]
+
+				strBytes, err := json.Marshal(values)
+				assert.Nil(t, err)
+
+				className := fmt.Sprintf("java.lang.%s", primitiveType)
+				containerName := fmt.Sprintf("java.util.%s", collection)
+
+				data := testData{value: string(strBytes), className: className, containerName: containerName, operationName: fmt.Sprintf("put%s", collection)}
+
+				mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+				assert.Nil(t, err)
+				registerHandlers(mbean)
+
+				insertData(java.Env, data, t, mbean)
+
+				data = testData{value: "messi", operationName: fmt.Sprintf("get%s", collection)}
+
+				stringData := readData(java.Env, data, t, mbean)
+
+				dest := make([]any, 0)
+				switch className {
+				case handlers.FloatClasspath:
+					var typedDest []float32
+					err = json.Unmarshal([]byte(stringData), &typedDest)
+					for _, f := range typedDest {
+						dest = append(dest, f)
+					}
+				case handlers.LongClasspath:
+					var typedDest []int64
+					err = json.Unmarshal([]byte(stringData), &typedDest)
+					for _, f := range typedDest {
+						dest = append(dest, f)
+					}
+				case handlers.IntClasspath:
+					var typedDest []int32
+					err = json.Unmarshal([]byte(stringData), &typedDest)
+					for _, f := range typedDest {
+						dest = append(dest, f)
+					}
+				case handlers.StringClasspath:
+					var typedDest []string
+					err = json.Unmarshal([]byte(stringData), &typedDest)
+					for _, f := range typedDest {
+						dest = append(dest, f)
+					}
+				case handlers.BoolClasspath:
+					var typedDest []bool
+					err = json.Unmarshal([]byte(stringData), &typedDest)
+					for _, f := range typedDest {
+						dest = append(dest, f)
+					}
+				case handlers.DoubleClasspath:
+					var typedDest []float64
+					err = json.Unmarshal([]byte(stringData), &typedDest)
+					for _, f := range typedDest {
+						dest = append(dest, f)
+					}
+				}
+
+				assert.Nil(t, err)
+
+				assert.Equal(t, len(values), len(dest))
+
+				containsCounter := 0
+
+				for _, value := range values {
+					for _, item := range dest {
+						if item == value {
+							containsCounter++
+						}
+					}
+				}
+
+				if len(values) != containsCounter {
+					assert.Fail(t, fmt.Sprintf("expected '%s' to be equal to '%s'", string(strBytes), stringData))
+				}
+			})
+		}
+	}
+
+}
+
+func TestCanCallIntoJmxAndGetResultWithPrimitiveTypes(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping Integration tests when running short mode")
 	}
@@ -237,72 +355,6 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 			testName:    "BooleanTesting",
 			expectedVal: "true",
 		},
-		/**
-		LIST TESTING
-		*/
-		{
-			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Integer", containerName: "java.util.List", operationName: "putList"},
-			readData:    &testData{value: "messi", operationName: "getList"},
-			testName:    "IntListTesting",
-			expectedVal: "[1,2,3]",
-		},
-		{
-			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Long", containerName: "java.util.List", operationName: "putList"},
-			readData:    &testData{value: "messi", operationName: "getList"},
-			testName:    "LongListTesting",
-			expectedVal: "[1,2,3]",
-		},
-		{
-			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Float", containerName: "java.util.List", operationName: "putList"},
-			readData:    &testData{value: "messi", operationName: "getList"},
-			testName:    "FloatListTesting",
-			expectedVal: "[1.31,2.431,3.6543]",
-		},
-		{
-			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Double", containerName: "java.util.List", operationName: "putList"},
-			readData:    &testData{value: "messi", operationName: "getList"},
-			testName:    "DoubleListTesting",
-			expectedVal: "[1.31,2.431,3.6543]",
-		},
-		{
-			initialData: &testData{value: "[true,false,true]", className: "java.lang.Boolean", containerName: "java.util.List", operationName: "putList"},
-			readData:    &testData{value: "messi", operationName: "getList"},
-			testName:    "BoolListTesting",
-			expectedVal: "[true,false,true]",
-		},
-		/**
-		SET TESTING
-		*/
-		{
-			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Integer", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "IntSetTesting",
-			expectedVal: "[1,2,3]",
-		},
-		{
-			initialData: &testData{value: "[1, 2, 3]", className: "java.lang.Long", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "LongSetTesting",
-			expectedVal: "[1,2,3]",
-		},
-		{
-			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Float", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "FloatSetTesting",
-			expectedVal: "[1.31,2.431,3.6543]",
-		},
-		{
-			initialData: &testData{value: "[1.31,2.431,3.6543]", className: "java.lang.Double", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "DoubleSetTesting",
-			expectedVal: "[1.31,2.431,3.6543]",
-		},
-		{
-			initialData: &testData{value: "[true,false,true]", className: "java.lang.Boolean", containerName: "java.util.Set", operationName: "putSet"},
-			readData:    &testData{value: "messi", operationName: "getSet"},
-			testName:    "BoolSetTesting",
-			expectedVal: "[true,false]",
-		},
 	}
 
 	lockCurrentThread(java)
@@ -324,7 +376,7 @@ func TestCanCallIntoJmxAndGetResult(t *testing.T) {
 	}
 }
 
-func readData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExecutor) any {
+func readData(env *jnigi.Env, data testData, t *testing.T, bean mbean.BeanExecutor) string {
 
 	operation := mbean.Operation{
 		Domain:    "org.example",

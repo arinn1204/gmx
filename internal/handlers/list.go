@@ -52,7 +52,7 @@ func (handler *ListHandler) ToJniRepresentation(env *jnigi.Env, elementType stri
 			return populateGenericContainer(env, lst, arr, handler.ClassHandlers)
 		}
 	case LongClasspath:
-		arr := make([]int, 0)
+		arr := make([]int64, 0)
 		json.Unmarshal(byteStr, &arr)
 		if lst, err := createJavaList(env, arr, handler.ClassHandlers); err == nil {
 			return populateGenericContainer(env, lst, arr, handler.ClassHandlers)
