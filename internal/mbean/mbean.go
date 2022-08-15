@@ -120,7 +120,7 @@ func (mbean *Client) Execute(operation Operation) (string, error) {
 
 func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi.ObjectRef) error {
 	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
-	objectParam, err := createString(env, mbeanName)
+	objectParam, err := stringHandler.ToJniRepresentation(env, mbeanName)
 
 	defer env.DeleteLocalRef(objectParam)
 	if err != nil {

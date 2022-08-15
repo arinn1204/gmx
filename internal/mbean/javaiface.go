@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"tekao.net/jnigi"
 )
@@ -50,12 +49,12 @@ func (mbean *Client) checkForKnownInterfaces(env *jnigi.Env, param *jnigi.Object
 			return "", err
 		}
 
-		if strings.EqualFold(dest, "java.util.List") {
+		if handler, exists := mbean.InterfaceHandlers[dest]; exists {
 			dest := make([]any, 0)
-			if err := mbean.createGoArrayFromList(param, env, &dest); err != nil {
+
+			if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
 				return "", err
 			}
-
 			arr, err := json.Marshal(dest)
 
 			if err != nil {

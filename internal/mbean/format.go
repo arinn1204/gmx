@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/arinn1204/gmx/internal/handlers"
 	"github.com/arinn1204/gmx/pkg/extensions"
@@ -29,58 +28,66 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		return "", err
 	}
 
-	handler := mbean.ClassHandlers[clazz]
+	if handler, exists := mbean.ClassHandlers[clazz]; exists {
+		_ = handler
+		return fromJava(clazz, env, param, handler)
+	}
 
-	if strings.EqualFold(clazz, handlers.StringClasspath) {
+	return mbean.checkForKnownInterfaces(env, param, clazz)
+}
+
+func fromJava(classPath string, env *jnigi.Env, parameter *jnigi.ObjectRef, handler extensions.IHandler) (string, error) {
+	switch classPath {
+	case handlers.StringClasspath:
 		var str string
 
-		if err = handler.ToGoRepresentation(env, param, &str); err != nil {
+		if err := handler.ToGoRepresentation(env, parameter, &str); err != nil {
 			return "", err
 		}
 
 		return str, nil
-	} else if strings.EqualFold(clazz, handlers.LongClasspath) {
-		res := int64(0)
-
-		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
-			return "", err
-		}
-
-		return fmt.Sprintf("%d", res), nil
-	} else if strings.EqualFold(clazz, handlers.IntClasspath) {
-		res := 0
-
-		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
-			return "", err
-		}
-
-		return fmt.Sprintf("%d", res), nil
-	} else if strings.EqualFold(clazz, handlers.DoubleClasspath) {
-		res := float64(0)
-
-		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
-			return "", err
-		}
-
-		return strconv.FormatFloat(res, 'f', -1, 64), nil
-	} else if strings.EqualFold(clazz, handlers.FloatClasspath) {
-		res := float32(0)
-
-		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
-			return "", err
-		}
-
-		return strconv.FormatFloat(float64(res), 'f', -1, 32), nil
-	} else if strings.EqualFold(clazz, handlers.BoolClasspath) {
+	case handlers.BoolClasspath:
 		res := false
 
-		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
+		if err := handler.ToGoRepresentation(env, parameter, &res); err != nil {
 			return "", err
 		}
 
 		return fmt.Sprintf("%t", res), nil
-	} else {
-		return mbean.checkForKnownInterfaces(env, param, clazz)
+	case handlers.LongClasspath:
+		res := int64(0)
+
+		if err := handler.ToGoRepresentation(env, parameter, &res); err != nil {
+			return "", err
+		}
+
+		return fmt.Sprintf("%d", res), nil
+	case handlers.IntClasspath:
+		res := 0
+
+		if err := handler.ToGoRepresentation(env, parameter, &res); err != nil {
+			return "", err
+		}
+
+		return fmt.Sprintf("%d", res), nil
+	case handlers.FloatClasspath:
+		res := float32(0)
+
+		if err := handler.ToGoRepresentation(env, parameter, &res); err != nil {
+			return "", err
+		}
+
+		return strconv.FormatFloat(float64(res), 'f', -1, 32), nil
+	case handlers.DoubleClasspath:
+		res := float64(0)
+
+		if err := handler.ToGoRepresentation(env, parameter, &res); err != nil {
+			return "", err
+		}
+
+		return strconv.FormatFloat(res, 'f', -1, 64), nil
+	default:
+		return "", fmt.Errorf("no handler exists for %s", classPath)
 	}
 }
 
@@ -115,15 +122,6 @@ func getClassName(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 	}
 
 	return strName, nil
-}
-
-func createString(env *jnigi.Env, str string) (*jnigi.ObjectRef, error) {
-	stringRef, err := env.NewObject(STRING, []byte(str))
-	if err != nil {
-		return nil, fmt.Errorf("failed to turn %s into an object::%s", str, err.Error())
-	}
-
-	return stringRef, nil
 }
 
 func toTypeFromString(value string, className string) (any, error) {

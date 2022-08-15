@@ -58,6 +58,23 @@ func (handler *ListHandler) ToJniRepresentation(env *jnigi.Env, elementType stri
 
 // ToGoRepresentation will convert from a JNI type to a go type
 func (handler *ListHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
+	iterator, err := getIterator(env, object, handler.ClassHandlers)
+
+	if err != nil {
+		return err
+	}
+
+	for iterator.hasNext(env) {
+		value, err := iterator.getNext(env)
+		if err != nil {
+			return err
+		}
+
+		if err = iterator.fromJava(value, env, dest.(*[]any)); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
