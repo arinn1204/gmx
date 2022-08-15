@@ -155,7 +155,9 @@ func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi
 		return err
 	}
 
-	operationRef, err := createString(env, operation.Operation)
+	defer env.DeleteLocalRef(types)
+
+	operationRef, err := stringHandler.ToJniRepresentation(env, operation.Operation)
 	defer env.DeleteLocalRef(operationRef)
 	if err != nil {
 		return err

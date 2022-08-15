@@ -2,6 +2,7 @@ package handlers
 
 import "tekao.net/jnigi"
 
+// These are the constants for the List classpath and JNI representation
 const (
 	ListJniRepresentation = "java/util/List"
 	ListClassPath         = "java.util.List"

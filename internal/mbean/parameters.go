@@ -8,6 +8,16 @@ import (
 	"tekao.net/jnigi"
 )
 
+func deleteLocalArray(env *jnigi.Env, arr []*jnigi.ObjectRef) {
+	if arr == nil {
+		return
+	}
+
+	for _, ob := range arr {
+		env.DeleteLocalRef(ob)
+	}
+}
+
 func getOperationParameterTypes(env *jnigi.Env,
 	objectName *jnigi.ObjectRef,
 	serverConnection *jnigi.ObjectRef,
@@ -18,11 +28,15 @@ func getOperationParameterTypes(env *jnigi.Env,
 		return nil, err
 	}
 
+	defer deleteLocalArray(env, operations)
+
 	operatonRef, err := getOperation(env, operations, operationName)
 
 	if err != nil {
 		return nil, err
 	}
+
+	defer env.DeleteLocalRef(operatonRef)
 
 	types, err := getSignature(env, operatonRef)
 
@@ -36,6 +50,7 @@ func getOperationParameterTypes(env *jnigi.Env,
 		ref, err := stringHandler.ToJniRepresentation(env, paramType)
 
 		if err != nil {
+			defer deleteLocalArray(env, typeReferences)
 			return nil, err
 		}
 
