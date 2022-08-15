@@ -89,8 +89,10 @@ func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extension
 // This is handy when using the same JmxConnection in sub threads
 func (mbean *Client) WithEnvironment(env *jnigi.Env) BeanExecutor {
 	return &Client{
-		JmxConnection: mbean.JmxConnection,
-		Env:           env,
+		JmxConnection:     mbean.JmxConnection,
+		Env:               env,
+		ClassHandlers:     mbean.ClassHandlers,
+		InterfaceHandlers: mbean.InterfaceHandlers,
 	}
 }
 
@@ -215,6 +217,7 @@ func (mbean *Client) getArray(env *jnigi.Env, values []string, classes []string,
 		var obj *jnigi.ObjectRef
 
 		jniClassPath := strings.Replace(classes[i], ".", "/", -1)
+
 		if containerType[i] == "" {
 			handler := mbean.ClassHandlers[classes[i]]
 			var parsedVal any
