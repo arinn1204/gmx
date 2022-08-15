@@ -7,13 +7,17 @@ import (
 	"tekao.net/jnigi"
 )
 
+// These are the constants for the String classpath and JNI representation
 const (
 	StringJniRepresentation = "java/lang/String"
 	StringClasspath         = "java.lang.String"
 )
 
+// StringHandler is the type that can convert to and from java.lang.String
 type StringHandler struct{}
 
+// ToJniRepresentation is the implementation that will convert from a go type
+// to a JNI representation of that type
 func (handler *StringHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
 	stringRef, err := env.NewObject(StringJniRepresentation, []byte(value.(string)))
 	if err != nil {
@@ -23,7 +27,7 @@ func (handler *StringHandler) ToJniRepresentation(env *jnigi.Env, value any) (*j
 	return stringRef, nil
 }
 
-// ToGoRepresentiation is the processing to go from a string java class to a string go class
+// ToGoRepresentation is the processing to go from a string java class to a string go class
 // Dest must be a string pointer to receive the newly created string
 func (handler *StringHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
 	var strBytes []byte
