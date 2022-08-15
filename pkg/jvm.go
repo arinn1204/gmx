@@ -72,6 +72,7 @@ func (client *Client) Initialize() error {
 	client.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
 
 	client.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: client.classHandlers})
+	client.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: client.classHandlers})
 
 	return nil
 }
