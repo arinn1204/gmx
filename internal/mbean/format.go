@@ -31,7 +31,7 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 
 	handler := mbean.ClassHandlers[clazz]
 
-	if strings.EqualFold(clazz, handlers.STRING_CLASSPATH) {
+	if strings.EqualFold(clazz, handlers.StringClasspath) {
 		var str string
 
 		if err = handler.ToGoRepresentation(env, param, &str); err != nil {
@@ -39,7 +39,7 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		}
 
 		return str, nil
-	} else if strings.EqualFold(clazz, handlers.LONG_CLASSPATH) {
+	} else if strings.EqualFold(clazz, handlers.LongClasspath) {
 		res := int64(0)
 
 		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
@@ -47,7 +47,7 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		}
 
 		return fmt.Sprintf("%d", res), nil
-	} else if strings.EqualFold(clazz, handlers.INT_CLASSPATH) {
+	} else if strings.EqualFold(clazz, handlers.IntClasspath) {
 		res := 0
 
 		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
@@ -55,7 +55,7 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		}
 
 		return fmt.Sprintf("%d", res), nil
-	} else if strings.EqualFold(clazz, handlers.DOUBLE_CLASSPATH) {
+	} else if strings.EqualFold(clazz, handlers.DoubleClasspath) {
 		res := float64(0)
 
 		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
@@ -63,7 +63,7 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		}
 
 		return strconv.FormatFloat(res, 'f', -1, 64), nil
-	} else if strings.EqualFold(clazz, handlers.FLOAT_CLASSPATH) {
+	} else if strings.EqualFold(clazz, handlers.FloatClasspath) {
 		res := float32(0)
 
 		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
@@ -71,7 +71,7 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		}
 
 		return strconv.FormatFloat(float64(res), 'f', -1, 32), nil
-	} else if strings.EqualFold(clazz, handlers.BOOL_CLASSPATH) {
+	} else if strings.EqualFold(clazz, handlers.BoolClasspath) {
 		res := false
 
 		if err = handler.ToGoRepresentation(env, param, &res); err != nil {
@@ -153,19 +153,19 @@ func toTypeFromString(value string, className string) (any, error) {
 	var val any
 	var err error
 	switch className {
-	case handlers.BOOL_CLASSPATH:
+	case handlers.BoolClasspath:
 		val, err = strconv.ParseBool(value)
-	case handlers.DOUBLE_CLASSPATH:
+	case handlers.DoubleClasspath:
 		val, err = strconv.ParseFloat(value, 64)
-	case handlers.FLOAT_CLASSPATH:
+	case handlers.FloatClasspath:
 		val, err = strconv.ParseFloat(value, 32)
 		val = float32(val.(float64))
-	case handlers.INT_CLASSPATH:
+	case handlers.IntClasspath:
 		val, err = strconv.ParseInt(value, 10, 32)
 		val = int(val.(int64))
-	case handlers.LONG_CLASSPATH:
+	case handlers.LongClasspath:
 		val, err = strconv.ParseInt(value, 10, 64)
-	case handlers.STRING_CLASSPATH, handlers.JNI_STRING:
+	case handlers.StringClasspath, handlers.StringJniRepresentation:
 		val, err = value, nil
 	}
 

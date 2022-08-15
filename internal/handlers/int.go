@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	JNI_INTEGER   = "java/lang/Integer"
-	INT_CLASSPATH = "java.lang.Integer"
+	IntegerJniRepresentation = "java/lang/Integer"
+	IntClasspath             = "java.lang.Integer"
 )
 
 type IntHandler struct{}
 
 func (handler *IntHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
-	intref, err := env.NewObject(JNI_INTEGER, value.(int))
+	intref, err := env.NewObject(IntegerJniRepresentation, value.(int))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create integer from %d::%s", value, err)

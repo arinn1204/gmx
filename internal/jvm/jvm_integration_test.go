@@ -379,10 +379,10 @@ func unlockCurrentThread(java *Java) {
 }
 
 func registerHandlers(bean mbean.BeanExecutor) {
-	bean.RegisterClassHandler(handlers.BOOL_CLASSPATH, &handlers.BoolHandler{})
-	bean.RegisterClassHandler(handlers.DOUBLE_CLASSPATH, &handlers.DoubleHandler{})
-	bean.RegisterClassHandler(handlers.FLOAT_CLASSPATH, &handlers.FloatHandler{})
-	bean.RegisterClassHandler(handlers.INT_CLASSPATH, &handlers.IntHandler{})
-	bean.RegisterClassHandler(handlers.LONG_CLASSPATH, &handlers.LongHandler{})
-	bean.RegisterClassHandler(handlers.STRING_CLASSPATH, &handlers.StringHandler{})
+	bean.RegisterClassHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
+	bean.RegisterClassHandler(handlers.DoubleClasspath, &handlers.DoubleHandler{})
+	bean.RegisterClassHandler(handlers.FloatClasspath, &handlers.FloatHandler{})
+	bean.RegisterClassHandler(handlers.IntClasspath, &handlers.IntHandler{})
+	bean.RegisterClassHandler(handlers.LongClasspath, &handlers.LongHandler{})
+	bean.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
 }

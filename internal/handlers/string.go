@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	JNI_STRING       = "java/lang/String"
-	STRING_CLASSPATH = "java.lang.String"
+	StringJniRepresentation = "java/lang/String"
+	StringClasspath         = "java.lang.String"
 )
 
 type StringHandler struct{}
 
 func (handler *StringHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
-	stringRef, err := env.NewObject(JNI_STRING, []byte(value.(string)))
+	stringRef, err := env.NewObject(StringJniRepresentation, []byte(value.(string)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to turn %s into an object::%s", value, err.Error())
 	}

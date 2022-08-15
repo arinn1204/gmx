@@ -190,7 +190,7 @@ func (mbean *Client) getTypeArray(env *jnigi.Env, args []OperationArgs) (*jnigi.
 		}
 
 		types = append(types, paramType)
-		classes = append(classes, handlers.STRING_CLASSPATH)
+		classes = append(classes, handlers.StringClasspath)
 		containerType = append(containerType, "") // types can't be arrays
 	}
 

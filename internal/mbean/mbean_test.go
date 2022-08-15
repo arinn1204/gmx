@@ -13,9 +13,9 @@ func TestRegisterClassHandler_SingleTypedTest(t *testing.T) {
 		ClassHandlers: make(map[string]extensions.IHandler),
 	}
 	doubleHandler := handlers.DoubleHandler{}
-	client.RegisterClassHandler(handlers.JNI_DOUBLE, &doubleHandler)
+	client.RegisterClassHandler(handlers.DoubleJniRepresentation, &doubleHandler)
 
-	assert.Equal(t, &doubleHandler, client.ClassHandlers[handlers.JNI_DOUBLE])
+	assert.Equal(t, &doubleHandler, client.ClassHandlers[handlers.DoubleJniRepresentation])
 }
 
 func TestRegisterClassHandler_MultipleTypedTest(t *testing.T) {
@@ -24,9 +24,9 @@ func TestRegisterClassHandler_MultipleTypedTest(t *testing.T) {
 	}
 	doubleHandler := handlers.DoubleHandler{}
 	floatHandler := handlers.FloatHandler{}
-	client.RegisterClassHandler(handlers.JNI_DOUBLE, &doubleHandler)
-	client.RegisterClassHandler(handlers.JNI_FLOAT, &floatHandler)
+	client.RegisterClassHandler(handlers.DoubleJniRepresentation, &doubleHandler)
+	client.RegisterClassHandler(handlers.FloatJniRepresentation, &floatHandler)
 
-	assert.Equal(t, &doubleHandler, client.ClassHandlers[handlers.JNI_DOUBLE])
-	assert.Equal(t, &floatHandler, client.ClassHandlers[handlers.JNI_FLOAT])
+	assert.Equal(t, &doubleHandler, client.ClassHandlers[handlers.DoubleJniRepresentation])
+	assert.Equal(t, &floatHandler, client.ClassHandlers[handlers.FloatJniRepresentation])
 }

@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	JNI_BOOLEAN    = "java/lang/Boolean"
-	BOOL_CLASSPATH = "java.lang.Boolean"
+	BoolJniRepresentation = "java/lang/Boolean"
+	BoolClasspath         = "java.lang.Boolean"
 )
 
 type BoolHandler struct{}
 
 func (handler *BoolHandler) ToJniRepresentation(env *jnigi.Env, value any) (*jnigi.ObjectRef, error) {
-	intref, err := env.NewObject(JNI_BOOLEAN, value.(bool))
+	intref, err := env.NewObject(BoolJniRepresentation, value.(bool))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create integer from %d::%s", value, err)

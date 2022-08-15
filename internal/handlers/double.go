@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	JNI_DOUBLE       = "java/lang/Double"
-	DOUBLE_CLASSPATH = "java.lang.Double"
+	DoubleJniRepresentation = "java/lang/Double"
+	DoubleClasspath         = "java.lang.Double"
 )
 
 type DoubleHandler struct{}
@@ -26,9 +26,9 @@ func (handler *DoubleHandler) ToJniRepresentation(env *jnigi.Env, value any) (*j
 
 	defer env.DeleteLocalRef(strRef)
 
-	floatRef := jnigi.NewObjectRef(JNI_DOUBLE)
+	floatRef := jnigi.NewObjectRef(DoubleJniRepresentation)
 
-	if err = env.CallStaticMethod(JNI_DOUBLE, "valueOf", floatRef, strRef); err != nil {
+	if err = env.CallStaticMethod(DoubleJniRepresentation, "valueOf", floatRef, strRef); err != nil {
 		return nil, errors.New("failed to convert to a double::" + err.Error())
 	}
 
