@@ -9,7 +9,7 @@ import (
 )
 
 // Run is the main entry point for the cli
-func Run(domain string, name string, operation string, args string, types string) {
+func Run(domain string, name string, operation string, args string, types string, containerTypes string) {
 	client := &gmx.Client{}
 	err := client.Initialize()
 
@@ -29,11 +29,17 @@ func Run(domain string, name string, operation string, args string, types string
 
 	splitArgs := strings.Split(args, ",")
 	splitTypes := strings.Split(types, ",")
+	splitContainers := strings.Split(containerTypes, ",")
 
 	for i := range splitArgs {
+		containerType := ""
+		if i < len(splitContainers) {
+			containerType = splitContainers[i]
+		}
 		mbeanArgs = append(mbeanArgs, gmx.MBeanArgs{
-			Value:    splitArgs[i],
-			JavaType: splitTypes[i],
+			Value:             splitArgs[i],
+			JavaType:          splitTypes[i],
+			JavaContainerType: containerType,
 		})
 	}
 

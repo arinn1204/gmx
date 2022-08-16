@@ -10,13 +10,14 @@ import (
 )
 
 var (
-	domain    *string
-	name      *string
-	operation *string
-	hostname  *string
-	port      *int
-	args      *string
-	types     *string
+	domain         *string
+	name           *string
+	operation      *string
+	hostname       *string
+	port           *int
+	args           *string
+	types          *string
+	containerTypes *string
 )
 
 func init() {
@@ -27,6 +28,7 @@ func init() {
 	operation = flag.String("operation", "", "[Required] The operation that is being executed")
 	args = flag.String("arguments", "", "[Optional] The comma separated arguments passed into the operation")
 	types = flag.String("types", "", "[Optional] The comma separated types that correspond with the arguments passed in")
+	containerTypes = flag.String("containers", "", "[Optional] the type of the container (list/set) that will be used to contain in the corresponding type")
 }
 
 func exit(predicate func() bool) {
@@ -51,10 +53,15 @@ func validateArgs() {
 		flag.Usage()
 		log.Fatal("\nMust provide types for all the args provided")
 	}
+
+	if containerTypes != nil && *containerTypes != "" && (types == nil || *types == "") {
+		flag.Usage()
+		log.Fatal("\nMust provide a type if providing a container type")
+	}
 }
 
 func main() {
 	flag.Parse()
 	validateArgs()
-	cmd.Run(*domain, *name, *operation, *args, *types)
+	cmd.Run(*domain, *name, *operation, *args, *types, *containerTypes)
 }
