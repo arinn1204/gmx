@@ -75,14 +75,18 @@ func (handler *SetHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.Obje
 		return err
 	}
 
+	defer env.DeleteLocalRef(iterator.iterable)
 	for iterator.hasNext(env) {
 		value, err := iterator.getNext(env)
 		if err != nil {
 			return err
 		}
-
-		if err = iterator.fromJava(value, env, dest.(*[]any)); err != nil {
+		defer env.DeleteLocalRef(value)
+		val, err := iterator.fromJava(value, env)
+		if err != nil {
 			return err
+		} else {
+			*dest.(*[]any) = append(*dest.(*[]any), val)
 		}
 	}
 

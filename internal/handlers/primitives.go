@@ -40,10 +40,10 @@ func getClassName(param *jnigi.ObjectRef, env *jnigi.Env) (string, error) {
 	return strName, nil
 }
 
-func (iterator iterableRef[T]) fromJava(param *jnigi.ObjectRef, env *jnigi.Env, dest *[]any) error {
+func (iterator iterableRef[T]) fromJava(param *jnigi.ObjectRef, env *jnigi.Env) (any, error) {
 	cls, err := getClassName(param, env)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	handler := iterator.classHandlers[cls]
@@ -52,48 +52,46 @@ func (iterator iterableRef[T]) fromJava(param *jnigi.ObjectRef, env *jnigi.Env, 
 	case StringClasspath:
 		var valDest string
 		if err = handler.ToGoRepresentation(env, param, &valDest); err != nil {
-			return err
+			return nil, err
 		}
 
-		*dest = append(*dest, string(valDest))
+		return valDest, nil
 	case IntClasspath:
 		var valDest int
 		if err = handler.ToGoRepresentation(env, param, &valDest); err != nil {
-			return err
+			return nil, err
 		}
 
-		*dest = append(*dest, valDest)
+		return valDest, nil
 	case LongClasspath:
 		var valDest int64
 		if err = handler.ToGoRepresentation(env, param, &valDest); err != nil {
-			return err
+			return nil, err
 		}
 
-		*dest = append(*dest, valDest)
+		return valDest, nil
 	case FloatClasspath:
 		var valDest float32
 		if err = handler.ToGoRepresentation(env, param, &valDest); err != nil {
-			return err
+			return nil, err
 		}
 
-		*dest = append(*dest, valDest)
+		return valDest, nil
 	case DoubleClasspath:
 		var valDest float64
 		if err = handler.ToGoRepresentation(env, param, &valDest); err != nil {
-			return err
+			return nil, err
 		}
 
-		*dest = append(*dest, valDest)
+		return valDest, nil
 	case BoolClasspath:
 		var valDest bool
 		if err = handler.ToGoRepresentation(env, param, &valDest); err != nil {
-			return err
+			return nil, err
 		}
 
-		*dest = append(*dest, valDest)
+		return valDest, nil
 	default:
-		return fmt.Errorf("no known formatter for %s", cls)
+		return nil, fmt.Errorf("no known formatter for %s", cls)
 	}
-
-	return nil
 }

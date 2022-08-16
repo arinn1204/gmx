@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"reflect"
 	"runtime"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -195,15 +197,40 @@ type testDataContainer struct {
 	expectedVal any
 }
 
-func TestCanCallIntoJmxAndGetResultWithMaps(t *testing.T) {
-	floatValues := []any{rand.Float32(), rand.Float32(), rand.Float32()}
-	doubleValues := []any{rand.Float64(), rand.Float64(), rand.Float64()}
-	intValues := []any{int32(rand.Int31()), int32(rand.Int31()), int32(rand.Int31())}
-	longValues := []any{int64(rand.Int63()), int64(rand.Int63()), int64(rand.Int63())}
-	boolValues := []any{true, false}
-	stringValues := []any{"hello", "world", "whatsgoinonyo"}
+func toString(value any, t *testing.T) string {
 
-	valueMapping := map[string][]any{
+	switch value := value.(type) {
+	case int32:
+		return fmt.Sprintf("%d", value)
+	case int64:
+		return fmt.Sprintf("%d", value)
+	case bool:
+		return fmt.Sprintf("%t", value)
+	case float32:
+		return strconv.FormatFloat(float64(value), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(float64(value), 'f', -1, 64)
+	case string:
+		return value
+	case []string, []float64, []float32, []bool, []int64, []int:
+		b, err := json.Marshal(value)
+		assert.Nil(t, err)
+		return string(b)
+	default:
+		assert.Fail(t, fmt.Sprintf("unkown type %s", reflect.TypeOf(value).Name()))
+		return ""
+	}
+}
+
+func TestCanCallIntoJmxAndGetResultWithMaps(t *testing.T) {
+	floatValues := rand.Float32()
+	doubleValues := rand.Float64()
+	intValues := int32(rand.Int31())
+	longValues := int64(rand.Int63())
+	boolValues := true
+	stringValues := "hello"
+
+	valueMapping := map[string]any{
 		"Integer": intValues,
 		"Float":   floatValues,
 		"Double":  doubleValues,
@@ -220,12 +247,11 @@ func TestCanCallIntoJmxAndGetResultWithMaps(t *testing.T) {
 
 			values := valueMapping[valueType]
 
-			strBytes, err := json.Marshal(values)
-			assert.Nil(t, err)
+			str := toString(values, t)
 
 			className := fmt.Sprintf("java.lang.%s", valueType)
 
-			data := testData{value: string(strBytes), className: className, operationName: fmt.Sprintf("put%s", valueType)}
+			data := testData{value: str, className: className, operationName: fmt.Sprintf("put%s", valueType)}
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
@@ -237,63 +263,52 @@ func TestCanCallIntoJmxAndGetResultWithMaps(t *testing.T) {
 
 			stringData := readData(java.Env, data, t, mbean)
 
-			dest := make([]any, 0)
+			dest := make(map[string]any)
 			switch className {
 			case handlers.FloatClasspath:
-				var typedDest []float32
+				var typedDest map[string]float32
 				err = json.Unmarshal([]byte(stringData), &typedDest)
-				for _, f := range typedDest {
-					dest = append(dest, f)
+				for k, v := range typedDest {
+					dest[k] = v
 				}
 			case handlers.LongClasspath:
-				var typedDest []int64
+				var typedDest map[string]int64
 				err = json.Unmarshal([]byte(stringData), &typedDest)
-				for _, f := range typedDest {
-					dest = append(dest, f)
+				for k, v := range typedDest {
+					dest[k] = v
 				}
 			case handlers.IntClasspath:
-				var typedDest []int32
+				var typedDest map[string]int32
 				err = json.Unmarshal([]byte(stringData), &typedDest)
-				for _, f := range typedDest {
-					dest = append(dest, f)
+				for k, v := range typedDest {
+					dest[k] = v
 				}
 			case handlers.StringClasspath:
-				var typedDest []string
+				var typedDest map[string]string
 				err = json.Unmarshal([]byte(stringData), &typedDest)
-				for _, f := range typedDest {
-					dest = append(dest, f)
+				for k, v := range typedDest {
+					dest[k] = v
 				}
 			case handlers.BoolClasspath:
-				var typedDest []bool
+				var typedDest map[string]bool
 				err = json.Unmarshal([]byte(stringData), &typedDest)
-				for _, f := range typedDest {
-					dest = append(dest, f)
+				for k, v := range typedDest {
+					dest[k] = v
 				}
 			case handlers.DoubleClasspath:
-				var typedDest []float64
+				var typedDest map[string]float64
 				err = json.Unmarshal([]byte(stringData), &typedDest)
-				for _, f := range typedDest {
-					dest = append(dest, f)
+				for k, v := range typedDest {
+					dest[k] = v
 				}
 			}
 
 			assert.Nil(t, err)
 
-			assert.Equal(t, len(values), len(dest))
+			expected := make(map[string]any)
+			expected["messi"] = values
 
-			containsCounter := 0
-
-			for _, value := range values {
-				for _, item := range dest {
-					if item == value {
-						containsCounter++
-					}
-				}
-			}
-
-			if len(values) != containsCounter {
-				assert.Fail(t, fmt.Sprintf("expected '%s' to be equal to '%s'", string(strBytes), stringData))
-			}
+			assert.Equal(t, expected, dest)
 		})
 
 	}
@@ -547,4 +562,5 @@ func registerHandlers(bean mbean.BeanExecutor) {
 
 	bean.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: client.ClassHandlers})
 	bean.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: client.ClassHandlers})
+	bean.RegisterInterfaceHandler(handlers.MapClassPath, &handlers.MapHandler{ClassHandlers: client.ClassHandlers})
 }

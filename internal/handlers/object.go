@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
@@ -35,4 +37,23 @@ func getClassPathFromType(env *jnigi.Env, value any) (string, error) {
 	}
 
 	return "", errors.New("no defined translater for value " + reflect.TypeOf(value).Name())
+}
+
+func anyToString(value any) (string, error) {
+	switch value := value.(type) {
+	case int:
+		return fmt.Sprintf("%d", value), nil
+	case int64:
+		return fmt.Sprintf("%d", value), nil
+	case float32:
+		return strconv.FormatFloat(float64(value), 'f', -1, 32), nil
+	case float64:
+		return strconv.FormatFloat(value, 'f', -1, 64), nil
+	case bool:
+		return fmt.Sprintf("%t", value), nil
+	case string:
+		return value, nil
+	default:
+		return "", errors.New("no defined translater for value " + reflect.TypeOf(value).Name())
+	}
 }
