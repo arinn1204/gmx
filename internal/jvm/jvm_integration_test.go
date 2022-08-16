@@ -212,7 +212,7 @@ func toString(value any, t *testing.T) string {
 		return strconv.FormatFloat(float64(value), 'f', -1, 64)
 	case string:
 		return value
-	case []string, []float64, []float32, []bool, []int64, []int:
+	case []string, []float64, []float32, []bool, []int64, []int32:
 		b, err := json.Marshal(value)
 		assert.Nil(t, err)
 		return string(b)
@@ -222,7 +222,56 @@ func toString(value any, t *testing.T) string {
 	}
 }
 
-func TestCanCallIntoJmxAndGetResultWithMaps(t *testing.T) {
+func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T) {
+	collections := []string{"List", "Set"}
+
+	valueMapping := map[string]any{
+		"List": []int32{int32(rand.Int31()), int32(rand.Int31())},
+		"Set":  []string{"hello", "world", "!!"},
+	}
+
+	typeMapping := map[string]string{
+		"List": "Integer",
+		"Set":  "String",
+	}
+
+	for _, collectionType := range collections {
+		innerType := typeMapping[collectionType]
+		t.Run(fmt.Sprintf("TestJmxAndGetResultsFor_AdvancedMap<String, %s>", innerType), func(t *testing.T) {
+			values := valueMapping[collectionType]
+			str := toString(values, t)
+
+			data := testData{value: str, className: fmt.Sprintf("java.lang.%s", innerType), containerName: fmt.Sprintf("java.util.%s", collectionType), operationName: "putList"}
+
+			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+			assert.Nil(t, err)
+			registerHandlers(mbean)
+
+			insertData(java.Env, data, t, mbean)
+
+			data = testData{value: collectionType, operationName: "getMap"}
+
+			stringData := readData(java.Env, data, t, mbean)
+
+			if innerType == "Integer" {
+				var arr []int32
+				err := json.Unmarshal([]byte(stringData), &arr)
+				assert.Nil(t, err)
+
+				assert.Equal(t, values, arr)
+			} else if innerType == "String" {
+				var arr []string
+				err := json.Unmarshal([]byte(stringData), &arr)
+				assert.Nil(t, err)
+
+				assert.Equal(t, values, arr)
+			}
+
+		})
+	}
+}
+
+func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
 	floatValues := rand.Float32()
 	doubleValues := rand.Float64()
 	intValues := int32(rand.Int31())
@@ -560,7 +609,7 @@ func registerHandlers(bean mbean.BeanExecutor) {
 
 	client := bean.(*mbean.Client)
 
-	bean.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: client.ClassHandlers})
-	bean.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: client.ClassHandlers})
-	bean.RegisterInterfaceHandler(handlers.MapClassPath, &handlers.MapHandler{ClassHandlers: client.ClassHandlers})
+	bean.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: &client.ClassHandlers})
+	bean.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: &client.ClassHandlers})
+	bean.RegisterInterfaceHandler(handlers.MapClassPath, &handlers.MapHandler{ClassHandlers: &client.ClassHandlers})
 }

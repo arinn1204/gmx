@@ -13,7 +13,7 @@ const (
 
 // MapHandler is the type that will be able to convert maps to and from go arrays
 type MapHandler struct {
-	ClassHandlers map[string]extensions.IHandler
+	ClassHandlers *map[string]extensions.IHandler
 }
 
 // ToJniRepresentation is the ability to translate from a go map to a java map

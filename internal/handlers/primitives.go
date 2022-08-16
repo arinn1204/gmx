@@ -46,7 +46,7 @@ func (iterator iterableRef[T]) fromJava(param *jnigi.ObjectRef, env *jnigi.Env) 
 		return nil, err
 	}
 
-	handler := iterator.classHandlers[cls]
+	handler := (*iterator.classHandlers)[cls]
 
 	switch cls {
 	case StringClasspath:
