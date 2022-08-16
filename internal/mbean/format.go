@@ -1,6 +1,7 @@
 package mbean
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -33,7 +34,19 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		return fromJava(clazz, env, param, handler)
 	}
 
-	return mbean.checkForKnownInterfaces(env, param, clazz)
+	val, err := handlers.CheckForKnownInterfaces(env, param, clazz, &mbean.InterfaceHandlers)
+
+	if err != nil {
+		return "", err
+	}
+
+	bytes, err := json.Marshal(val)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), err
 }
 
 func fromJava(classPath string, env *jnigi.Env, parameter *jnigi.ObjectRef, handler extensions.IHandler) (string, error) {

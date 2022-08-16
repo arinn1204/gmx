@@ -17,7 +17,8 @@ const (
 
 // SetHandler is the type that will be able to convert lists to and from go arrays
 type SetHandler struct {
-	ClassHandlers *map[string]extensions.IHandler
+	ClassHandlers     *map[string]extensions.IHandler
+	InterfaceHandlers *map[string]extensions.InterfaceHandler
 }
 
 // ToJniRepresentation is the implementation that will convert from a go type
@@ -69,7 +70,7 @@ func (handler *SetHandler) ToJniRepresentation(env *jnigi.Env, elementType strin
 
 // ToGoRepresentation will convert from a JNI type to a go type
 func (handler *SetHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
-	iterator, err := getIterator(env, object, handler.ClassHandlers)
+	iterator, err := getIterator(env, object, handler.ClassHandlers, handler.InterfaceHandlers)
 
 	if err != nil {
 		return err

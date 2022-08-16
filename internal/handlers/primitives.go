@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -46,8 +47,18 @@ func (iterator iterableRef[T]) fromJava(param *jnigi.ObjectRef, env *jnigi.Env) 
 		return nil, err
 	}
 
-	handler := (*iterator.classHandlers)[cls]
+	handlers := *iterator.classHandlers
 
+	// always go class and then interface
+	if handler, exists := handlers[cls]; exists {
+		return getFromClassHandler(cls, handler, env, param)
+	}
+
+	return CheckForKnownInterfaces(env, param, cls, iterator.interfaceHandlers)
+}
+
+func getFromClassHandler(cls string, handler extensions.IHandler, env *jnigi.Env, param *jnigi.ObjectRef) (any, error) {
+	var err error
 	switch cls {
 	case StringClasspath:
 		var valDest string

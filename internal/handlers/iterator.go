@@ -16,11 +16,12 @@ const (
 )
 
 type iterableRef[T any] struct {
-	iterable      *jnigi.ObjectRef
-	classHandlers *map[string]extensions.IHandler
+	iterable          *jnigi.ObjectRef
+	classHandlers     *map[string]extensions.IHandler
+	interfaceHandlers *map[string]extensions.InterfaceHandler
 }
 
-func getIterator(env *jnigi.Env, param *jnigi.ObjectRef, handlers *map[string]extensions.IHandler) (*iterableRef[any], error) {
+func getIterator(env *jnigi.Env, param *jnigi.ObjectRef, classHandlers *map[string]extensions.IHandler, interfaceHandlers *map[string]extensions.InterfaceHandler) (*iterableRef[any], error) {
 	iterator := jnigi.NewObjectRef(IteratorJniRepresentation)
 
 	if err := param.CallMethod(env, "iterator", iterator); err != nil {
@@ -28,8 +29,9 @@ func getIterator(env *jnigi.Env, param *jnigi.ObjectRef, handlers *map[string]ex
 	}
 
 	return &iterableRef[any]{
-		iterable:      iterator,
-		classHandlers: handlers,
+		iterable:          iterator,
+		classHandlers:     classHandlers,
+		interfaceHandlers: interfaceHandlers,
 	}, nil
 }
 

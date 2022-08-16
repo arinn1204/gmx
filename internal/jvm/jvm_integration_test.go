@@ -105,6 +105,7 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 }
 
 func TestCreatingFloats(t *testing.T) {
+
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
@@ -223,6 +224,10 @@ func toString(value any, t *testing.T) string {
 }
 
 func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
+
 	collections := []string{"List", "Set"}
 
 	valueMapping := map[string]any{
@@ -241,7 +246,7 @@ func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T)
 			values := valueMapping[collectionType]
 			str := toString(values, t)
 
-			data := testData{value: str, className: fmt.Sprintf("java.lang.%s", innerType), containerName: fmt.Sprintf("java.util.%s", collectionType), operationName: "putList"}
+			data := testData{value: str, className: fmt.Sprintf("java.lang.%s", innerType), containerName: fmt.Sprintf("java.util.%s", collectionType), operationName: fmt.Sprintf("put%s", collectionType)}
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
@@ -254,24 +259,60 @@ func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T)
 			stringData := readData(java.Env, data, t, mbean)
 
 			if innerType == "Integer" {
-				var arr []int32
-				err := json.Unmarshal([]byte(stringData), &arr)
+				dict := make(map[string][]int32)
+				err := json.Unmarshal([]byte(stringData), &dict)
 				assert.Nil(t, err)
 
-				assert.Equal(t, values, arr)
+				arrayEqual(t, values.([]int32), dict["messi"])
+
 			} else if innerType == "String" {
-				var arr []string
-				err := json.Unmarshal([]byte(stringData), &arr)
+				dict := make(map[string][]string)
+				err := json.Unmarshal([]byte(stringData), &dict)
 				assert.Nil(t, err)
 
-				assert.Equal(t, values, arr)
+				assert.Equal(t, len(values.([]string)), len(dict["messi"]))
 			}
 
 		})
 	}
 }
 
+func arrayEqual(t *testing.T, left any, right any) {
+	assert.Equal(t, reflect.TypeOf(left), reflect.TypeOf(right))
+
+	switch left := left.(type) {
+	case []int32:
+		assert.Equal(t, len(left), len(right.([]int32)))
+		foundIdentical := 0
+		for _, l := range left {
+			for _, r := range right.([]int32) {
+				if l == r {
+					foundIdentical++
+				}
+			}
+		}
+
+		assert.Equal(t, len(left), foundIdentical)
+	case []string:
+		assert.Equal(t, len(left), len(right.([]string)))
+		foundIdentical := 0
+		for _, l := range left {
+			for _, r := range right.([]string) {
+				if l == r {
+					foundIdentical++
+				}
+			}
+		}
+
+		assert.Equal(t, len(left), foundIdentical)
+	}
+
+}
+
 func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
 	floatValues := rand.Float32()
 	doubleValues := rand.Float64()
 	intValues := int32(rand.Int31())
@@ -365,6 +406,9 @@ func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
 }
 
 func TestCanCallIntoJmxAndGetResultWithCollections(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
 	floatValues := []any{rand.Float32(), rand.Float32(), rand.Float32()}
 	doubleValues := []any{rand.Float64(), rand.Float64(), rand.Float64()}
 	intValues := []any{int32(rand.Int31()), int32(rand.Int31()), int32(rand.Int31())}
@@ -608,8 +652,7 @@ func registerHandlers(bean mbean.BeanExecutor) {
 	bean.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
 
 	client := bean.(*mbean.Client)
-
-	bean.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: &client.ClassHandlers})
-	bean.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: &client.ClassHandlers})
-	bean.RegisterInterfaceHandler(handlers.MapClassPath, &handlers.MapHandler{ClassHandlers: &client.ClassHandlers})
+	bean.RegisterInterfaceHandler(handlers.MapClassPath, &handlers.MapHandler{ClassHandlers: &client.ClassHandlers, InterfaceHandlers: &client.InterfaceHandlers})
+	bean.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: &client.ClassHandlers, InterfaceHandlers: &client.InterfaceHandlers})
+	bean.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: &client.ClassHandlers, InterfaceHandlers: &client.InterfaceHandlers})
 }

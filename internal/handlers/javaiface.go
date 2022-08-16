@@ -1,11 +1,9 @@
-package mbean
+package handlers
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/arinn1204/gmx/internal/handlers"
+	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -29,7 +27,9 @@ func getInterfaces(env *jnigi.Env, param *jnigi.ObjectRef) ([]*jnigi.ObjectRef, 
 	return env.FromObjectArray(interfaceRef), nil
 }
 
-func (mbean *Client) checkForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz string) (string, error) {
+// CheckForKnownInterfaces is a function that will check if the object has an interface that can be
+// processed by the given handlers
+func CheckForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz string, interfaceHandlers *map[string]extensions.InterfaceHandler) (any, error) {
 	interfaces, err := getInterfaces(env, param)
 
 	if err != nil {
@@ -37,7 +37,7 @@ func (mbean *Client) checkForKnownInterfaces(env *jnigi.Env, param *jnigi.Object
 	}
 
 	for _, iface := range interfaces {
-		name := jnigi.NewObjectRef(STRING)
+		name := jnigi.NewObjectRef(StringJniRepresentation)
 		defer env.DeleteLocalRef(name)
 
 		if err = iface.CallMethod(env, "getName", name); err != nil {
@@ -46,38 +46,27 @@ func (mbean *Client) checkForKnownInterfaces(env *jnigi.Env, param *jnigi.Object
 
 		var cls string
 
-		if err = stringHandler.ToGoRepresentation(env, name, &cls); err != nil {
+		if err = strHandler.ToGoRepresentation(env, name, &cls); err != nil {
 			return "", err
 		}
 
-		if handler, exists := mbean.InterfaceHandlers[cls]; exists {
+		if handler, exists := (*interfaceHandlers)[cls]; exists {
 
-			var arr []byte
-			if cls == handlers.MapClassPath {
+			if cls == MapClassPath {
 				dest := make(map[string]any)
 
 				if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
 					return "", err
 				}
-				arr, err = json.Marshal(dest)
-
-				if err != nil {
-					return "", errors.New("failed to turn list into json array::" + err.Error())
-				}
+				return dest, nil
 
 			} else {
 				dest := make([]any, 0)
 				if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
 					return "", err
 				}
-				arr, err = json.Marshal(dest)
-
-				if err != nil {
-					return "", errors.New("failed to turn list into json array::" + err.Error())
-				}
+				return dest, nil
 			}
-
-			return string(arr), nil
 		}
 	}
 

@@ -18,7 +18,8 @@ const (
 
 // ListHandler is the type that will be able to convert lists to and from go arrays
 type ListHandler struct {
-	ClassHandlers *map[string]extensions.IHandler
+	ClassHandlers     *map[string]extensions.IHandler
+	InterfaceHandlers *map[string]extensions.InterfaceHandler
 }
 
 // ToJniRepresentation is the implementation that will convert from a go type
@@ -70,12 +71,13 @@ func (handler *ListHandler) ToJniRepresentation(env *jnigi.Env, elementType stri
 
 // ToGoRepresentation will convert from a JNI type to a go type
 func (handler *ListHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.ObjectRef, dest any) error {
-	iterator, err := getIterator(env, object, handler.ClassHandlers)
+	iterator, err := getIterator(env, object, handler.ClassHandlers, handler.InterfaceHandlers)
 
 	if err != nil {
 		return err
 	}
 	defer env.DeleteLocalRef(iterator.iterable)
+	javaValues := make([]any, 0)
 	for iterator.hasNext(env) {
 		value, err := iterator.getNext(env)
 		if err != nil {
@@ -88,9 +90,11 @@ func (handler *ListHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.Obj
 		if err != nil {
 			return err
 		} else {
-			*dest.(*[]any) = append(*dest.(*[]any), val)
+			javaValues = append(javaValues, val)
 		}
 	}
+
+	*dest.(*[]any) = javaValues
 
 	return nil
 }
