@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -28,9 +29,9 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	m.Run()
+	code := m.Run()
+	os.Exit(code)
 
-	java.ShutdownJvm()
 }
 
 func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
@@ -69,12 +70,14 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	var mbean2 mbean.BeanExecutor
 
 	mbean1, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	defer mbean1.Close()
 	assert.Nil(t, err)
 	registerHandlers(mbean1)
 
 	mbean2, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 	assert.Nil(t, err)
 	registerHandlers(mbean2)
+	defer mbean2.Close()
 
 	testData := []testDataContainer{
 		{
@@ -144,6 +147,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 		assert.Nil(t, err)
 		registerHandlers(mbean)
+		defer mbean.Close()
 
 		testData := testDataContainer{
 			initialData: &testData{value: "fan369", className: "java.lang.String", operationName: "putString"},
@@ -166,6 +170,7 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 		defer unlockCurrentThread(java)
 		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
 		assert.Nil(t, err)
+		defer mbean.Close()
 		registerHandlers(mbean)
 
 		testData := testDataContainer{
@@ -249,6 +254,7 @@ func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T)
 			data := testData{value: str, className: fmt.Sprintf("java.lang.%s", innerType), containerName: fmt.Sprintf("java.util.%s", collectionType), operationName: fmt.Sprintf("put%s", collectionType)}
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+			defer mbean.Close()
 			assert.Nil(t, err)
 			registerHandlers(mbean)
 
@@ -346,6 +352,7 @@ func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
 			registerHandlers(mbean)
+			defer mbean.Close()
 
 			insertData(java.Env, data, t, mbean)
 
@@ -452,6 +459,7 @@ func TestCanCallIntoJmxAndGetResultWithCollections(t *testing.T) {
 
 				mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 				assert.Nil(t, err)
+				defer mbean.Close()
 				registerHandlers(mbean)
 
 				insertData(java.Env, data, t, mbean)
@@ -580,6 +588,7 @@ func TestCanCallIntoJmxAndGetResultWithPrimitiveTypes(t *testing.T) {
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
 			assert.Nil(t, err)
+			defer mbean.Close()
 			registerHandlers(mbean)
 
 			insertData(java.Env, *data.initialData, t, mbean)
