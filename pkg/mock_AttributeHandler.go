@@ -12,27 +12,6 @@ type MockAttributeHandler struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: domain, beanName, attributeName
-func (_m *MockAttributeHandler) Get(domain string, beanName string, attributeName string) (string, error) {
-	ret := _m.Called(domain, beanName, attributeName)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
-		r0 = rf(domain, beanName, attributeName)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(domain, beanName, attributeName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetById provides a mock function with given fields: id, domain, beanName, attributeName
 func (_m *MockAttributeHandler) GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error) {
 	ret := _m.Called(id, domain, beanName, attributeName)
@@ -47,27 +26,6 @@ func (_m *MockAttributeHandler) GetById(id uuid.UUID, domain string, beanName st
 	var r1 error
 	if rf, ok := ret.Get(1).(func(uuid.UUID, string, string, string) error); ok {
 		r1 = rf(id, domain, beanName, attributeName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Put provides a mock function with given fields: domain, beanName, attributeName, value
-func (_m *MockAttributeHandler) Put(domain string, beanName string, attributeName string, value interface{}) (string, error) {
-	ret := _m.Called(domain, beanName, attributeName, value)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) string); ok {
-		r0 = rf(domain, beanName, attributeName, value)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) error); ok {
-		r1 = rf(domain, beanName, attributeName, value)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -40,38 +40,6 @@ func (_m *MockMBeanOperator) Connect(hostname string, port int) (*uuid.UUID, err
 	return r0, r1
 }
 
-// ExecuteAgainstAll provides a mock function with given fields: domain, name, operation, args
-func (_m *MockMBeanOperator) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	_va := make([]interface{}, len(args))
-	for _i := range args {
-		_va[_i] = args[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, domain, name, operation)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 map[uuid.UUID]string
-	if rf, ok := ret.Get(0).(func(string, string, string, ...MBeanArgs) map[uuid.UUID]string); ok {
-		r0 = rf(domain, name, operation, args...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[uuid.UUID]string)
-		}
-	}
-
-	var r1 map[uuid.UUID]error
-	if rf, ok := ret.Get(1).(func(string, string, string, ...MBeanArgs) map[uuid.UUID]error); ok {
-		r1 = rf(domain, name, operation, args...)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(map[uuid.UUID]error)
-		}
-	}
-
-	return r0, r1
-}
-
 // ExecuteAgainstID provides a mock function with given fields: id, domain, name, operation, args
 func (_m *MockMBeanOperator) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error) {
 	_va := make([]interface{}, len(args))
