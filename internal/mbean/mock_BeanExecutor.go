@@ -40,6 +40,27 @@ func (_m *MockBeanExecutor) Execute(operation Operation) (string, error) {
 	return r0, r1
 }
 
+// Get provides a mock function with given fields: domainName, beanName, attributeName
+func (_m *MockBeanExecutor) Get(domainName string, beanName string, attributeName string) (string, error) {
+	ret := _m.Called(domainName, beanName, attributeName)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
+		r0 = rf(domainName, beanName, attributeName)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(domainName, beanName, attributeName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetEnv provides a mock function with given fields:
 func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 	ret := _m.Called()
@@ -54,6 +75,27 @@ func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 	}
 
 	return r0
+}
+
+// Put provides a mock function with given fields: domainName, beanName, attributeName, value
+func (_m *MockBeanExecutor) Put(domainName string, beanName string, attributeName string, value interface{}) (string, error) {
+	ret := _m.Called(domainName, beanName, attributeName, value)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) string); ok {
+		r0 = rf(domainName, beanName, attributeName, value)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) error); ok {
+		r1 = rf(domainName, beanName, attributeName, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // RegisterClassHandler provides a mock function with given fields: typeName, handler

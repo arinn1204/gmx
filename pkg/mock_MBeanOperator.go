@@ -100,27 +100,6 @@ func (_m *MockMBeanOperator) ExecuteAgainstID(id uuid.UUID, domain string, name 
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: domain, beanName, attributeName
-func (_m *MockMBeanOperator) Get(domain string, beanName string, attributeName string) (string, error) {
-	ret := _m.Called(domain, beanName, attributeName)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
-		r0 = rf(domain, beanName, attributeName)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(domain, beanName, attributeName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Initialize provides a mock function with given fields:
 func (_m *MockMBeanOperator) Initialize() (*Client, error) {
 	ret := _m.Called()
@@ -137,27 +116,6 @@ func (_m *MockMBeanOperator) Initialize() (*Client, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Put provides a mock function with given fields: domain, beanName, attributeName, value
-func (_m *MockMBeanOperator) Put(domain string, beanName string, attributeName string, value interface{}) (string, error) {
-	ret := _m.Called(domain, beanName, attributeName, value)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) string); ok {
-		r0 = rf(domain, beanName, attributeName, value)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) error); ok {
-		r1 = rf(domain, beanName, attributeName, value)
 	} else {
 		r1 = ret.Error(1)
 	}

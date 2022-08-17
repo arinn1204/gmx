@@ -13,9 +13,10 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type Client struct {
-	mbeans            map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
-	classHandlers     map[string]extensions.IHandler   // The map of type handlers to be used
-	interfaceHandlers map[string]extensions.InterfaceHandler
+	MaxNumberOfGoRoutines uint                             // The maximum number of goroutines to be used when doing parallel operations
+	mbeans                map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
+	classHandlers         map[string]extensions.IHandler   // The map of type handlers to be used
+	interfaceHandlers     map[string]extensions.InterfaceHandler
 }
 
 type Handler interface {
@@ -23,15 +24,40 @@ type Handler interface {
 	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
 }
 
+type AttributeHandler interface {
+	// Get will fetch an attribute by a given name for the given bean across all connections
+	Get(domain string, beanName string, attributeName string) (string, error)
+
+	// Put will change the given attribute across all connections
+	Put(domain string, beanName string, attributeName string, value any) (string, error)
+
+	// GetById will execute Get against the one given ID.
+	GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error)
+
+	// PutById will execute Put against the one given ID.
+	PutById(id uuid.UUID, domain string, beanName string, attributeName string, value any) (string, error)
+}
+
 // MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
 type MBeanOperator interface {
+	// Initialize will initialize the client:
+	// This starts the JVM and registers all basic class and interface handlers
+	// Basic handlers are: Integer, Double, String, Float, Boolean, Long, List, Set, Map<String, Object>
 	Initialize() (*Client, error)
+
+	// Close will close all connections that have been created and then shut down the JVM
 	Close()
+
+	// Connect will create a new mbean connection defined by the hostname and port
+	// The reference to this connection is stored for the life of the operator
 	Connect(hostname string, port int) (*uuid.UUID, error)
-	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
+
+	// ExecuteAgainstID will execute an operation against the given id. This will only target the provided ID
 	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
-	Get(domain string, beanName string, attributeName string) (string, error)
-	Put(domain string, beanName string, attributeName string, value any) (string, error)
+
+	// ExecuteAgainstAll will execute an operation against *all* connected beans.
+	// These are ran in their own go routines. If there concerns/desired constraints please define MaxNumberOfGoRoutines
+	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 }
 
 // MBeanArgs is the container for the operation arguments.

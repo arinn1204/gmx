@@ -58,9 +58,19 @@ type BeanExecutor interface {
 	RegisterClassHandler(typeName string, handler extensions.IHandler) error
 	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) error
 	Execute(operation Operation) (string, error)
+	Get(domainName string, beanName string, attributeName string) (string, error)
+	Put(domainName string, beanName string, attributeName string, value any) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
 	Close()
+}
+
+func (mbean *Client) Get(domainName string, beanName string, attributeName string) (string, error) {
+	return "", nil
+}
+
+func (mbean *Client) Put(domainName string, beanName string, attributeName string, value any) (string, error) {
+	return "", nil
 }
 
 // RegisterClassHandler will register the given class handlers
