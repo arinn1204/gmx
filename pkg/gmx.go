@@ -13,46 +13,14 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type Client struct {
-	MaxNumberOfGoRoutines uint                             // The maximum number of goroutines to be used when doing parallel operations
+	maxNumberOfGoRoutines uint                             // The maximum number of goroutines to be used when doing parallel operations
 	mbeans                map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
 	classHandlers         map[string]extensions.IHandler   // The map of type handlers to be used
 	interfaceHandlers     map[string]extensions.InterfaceHandler
 }
 
-// Handler is the interface that defines the different handler operations
-// These are needed if more extensibility is required for custom objects
-type Handler interface {
-	RegisterClassHandler(typeName string, handler extensions.IHandler)
-	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
-}
-
-// AttributeHandler is an interface that defines standard attribute operations
-// These will allow you to read and set attributes on the given connection ID
-type AttributeHandler interface {
-	// GetById will execute Get against the one given ID.
-	GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error)
-
-	// PutById will execute Put against the one given ID.
-	PutById(id uuid.UUID, domain string, beanName string, attributeName string, value any) (string, error)
-}
-
-// BatchExecutor is the interface that defines the methods that will execute against every connection available
-// This can be limited by defining MaxNumberOfGoRoutines
-// All of these threads will require a native thread as well as we are using the JVM. Use with caution
-type BatchExecutor interface {
-
-	// Get will fetch an attribute by a given name for the given bean across all connections
-	Get(domain string, beanName string, attributeName string) (string, error)
-
-	// Put will change the given attribute across all connections
-	Put(domain string, beanName string, attributeName string, value any) (string, error)
-	// ExecuteAgainstAll will execute an operation against *all* connected beans.
-	// These are ran in their own go routines. If there concerns/desired constraints please define MaxNumberOfGoRoutines
-	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
-}
-
-// MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
-type MBeanOperator interface {
+// MBeanClient is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
+type MBeanClient interface {
 	// Initialize will initialize the client:
 	// This starts the JVM and registers all basic class and interface handlers
 	// Basic handlers are: Integer, Double, String, Float, Boolean, Long, List, Set, Map<String, Object>
@@ -61,12 +29,31 @@ type MBeanOperator interface {
 	// Close will close all connections that have been created and then shut down the JVM
 	Close()
 
+	RegisterClassHandler(typeName string, handler extensions.IHandler)
+	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
+
 	// Connect will create a new mbean connection defined by the hostname and port
 	// The reference to this connection is stored for the life of the operator
 	Connect(hostname string, port int) (*uuid.UUID, error)
 
 	// ExecuteAgainstID will execute an operation against the given id. This will only target the provided ID
 	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
+
+	// Get will fetch an attribute by a given name for the given bean across all connections
+	Get(domain string, beanName string, attributeName string) (string, error)
+
+	// Put will change the given attribute across all connections
+	Put(domain string, beanName string, attributeName string, value any) (string, error)
+
+	// ExecuteAgainstAll will execute an operation against *all* connected beans.
+	// These are ran in their own go routines. If there concerns/desired constraints please define MaxNumberOfGoRoutines
+	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
+
+	// GetById will execute Get against the one given ID.
+	GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error)
+
+	// PutById will execute Put against the one given ID.
+	PutById(id uuid.UUID, domain string, beanName string, attributeName string, value any) (string, error)
 }
 
 // MBeanArgs is the container for the operation arguments.
@@ -100,6 +87,10 @@ type batchExecutionResult struct {
 	id     uuid.UUID
 	result string
 	err    error
+}
+
+func CreateClient() {
+
 }
 
 // ExecuteAgainstAll will execute a single command against every mbean that is currently registered.
@@ -149,8 +140,8 @@ func (client *Client) internalExecuteAgainstAll(execution func(uuid.UUID) (strin
 
 	maxLimitOfConcurrency := len(client.mbeans)
 
-	if client.MaxNumberOfGoRoutines > 0 {
-		maxLimitOfConcurrency = int(client.MaxNumberOfGoRoutines)
+	if client.maxNumberOfGoRoutines > 0 {
+		maxLimitOfConcurrency = int(client.maxNumberOfGoRoutines)
 	}
 
 	guard := make(chan struct{}, maxLimitOfConcurrency)
