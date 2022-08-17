@@ -6,7 +6,7 @@ JAVAC				:= javac
 
 .PHONY: build clean vendor test integration_test mocks jniexample
 
-all: clean vendor integration_test stop install
+all: clean vendor integration_test stop snapshot
 
 install:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go install github.com/arinn1204/gmx
