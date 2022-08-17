@@ -15,3 +15,19 @@ In this context, a nested list would be something like: `List<List<String>> nest
 ## Examples
 
 See the example's directory
+
+## Using GMX
+
+This will require a valid version of java on the machine. This was built and tested with java 18.
+
+Since GMX relies on CGO, we will need a few environment variables defined to facilitate building and linking against `jni.h` and `libjvm.so`/`libjvm.dylib`/`libjvm.dll`
+
+The Makefile is setup for a Mac with the includes/compiler flags. But to set it up you will need:
+
+* `CGO_CFLAGS=-I$JAVA_HOME/include`
+
+This will set the compiler flags. JNIGI (the JNI go bridge) will need access to `jni.h` in order to do any of the jni operations
+
+* `-L$JAVA_HOME/lib -ljvm`
+
+This will include the JVM shared library from your JDK. This is required for runtime ability to create a JVM and actually perform the JNI operations

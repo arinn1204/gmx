@@ -1,5 +1,5 @@
-INCLUDEFLAGS		:= -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OSNAME)
-LINKERFLAGS 		:= -L$(JAVA_HOME)/lib/server -L$(JAVA_HOME)/lib -ljvm
+INCLUDEFLAGS		:= -I$(JAVA_HOME)/include
+LINKERFLAGS 		:= -L$(JAVA_HOME)/lib -ljvm
 CGO_CFLAGS       	:= $(INCLUDEFLAGS)
 CGO_LDFLAGS 		:= $(LINKERFLAGS)
 JAVAC				:= javac
