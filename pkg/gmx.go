@@ -98,40 +98,9 @@ type batchExecutionResult struct {
 //
 // All executions will be run in separate go routines, so this needs to be planned for accordingly
 func (client *Client) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	results := make(chan batchExecutionResult, len(client.mbeans))
-	wg := &sync.WaitGroup{}
-
-	for id := range client.mbeans {
-
-		wg.Add(1)
-		go func(id uuid.UUID) {
-			defer wg.Done()
-			res, err := client.ExecuteAgainstID(id, domain, name, operation, args...)
-			result := batchExecutionResult{
-				id:     id,
-				result: res,
-				err:    err,
-			}
-
-			results <- result
-
-		}(id)
-
-	}
-
-	wg.Wait()
-
-	result := make(map[uuid.UUID]string)
-	receivedErrors := make(map[uuid.UUID]error)
-
-	for i := 0; i < len(client.mbeans); i++ {
-		res := <-results
-
-		result[res.id] = res.result
-		receivedErrors[res.id] = res.err
-	}
-
-	return result, receivedErrors
+	return client.internalExecuteAgainstAll(func(id uuid.UUID) (string, error) {
+		return client.ExecuteAgainstID(id, domain, name, operation, args...)
+	})
 }
 
 // ExecuteAgainstID is a method that will take a given operation and MBean ID and make the JMX request.
@@ -163,4 +132,50 @@ func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string,
 	}
 
 	return bean.Execute(mbeanOp)
+}
+
+func (client *Client) internalExecuteAgainstAll(execution func(uuid.UUID) (string, error)) (map[uuid.UUID]string, map[uuid.UUID]error) {
+	results := make(chan batchExecutionResult, len(client.mbeans))
+	wg := &sync.WaitGroup{}
+
+	maxLimitOfConcurrency := len(client.mbeans)
+
+	if client.MaxNumberOfGoRoutines > 0 {
+		maxLimitOfConcurrency = int(client.MaxNumberOfGoRoutines)
+	}
+
+	guard := make(chan struct{}, maxLimitOfConcurrency)
+
+	for id := range client.mbeans {
+
+		// this will block if there are no available threads
+		guard <- struct{}{}
+		wg.Add(1)
+		go func(id uuid.UUID) {
+			defer wg.Done()
+			res, err := execution(id)
+			result := batchExecutionResult{
+				id:     id,
+				result: res,
+				err:    err,
+			}
+
+			results <- result
+			<-guard // this will release this threads guard
+		}(id)
+
+	}
+
+	wg.Wait()
+	result := make(map[uuid.UUID]string)
+	receivedErrors := make(map[uuid.UUID]error)
+
+	for i := 0; i < len(client.mbeans); i++ {
+		res := <-results
+
+		result[res.id] = res.result
+		receivedErrors[res.id] = res.err
+	}
+
+	return result, receivedErrors
 }
