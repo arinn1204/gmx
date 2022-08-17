@@ -86,9 +86,9 @@ func (handler *SetHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.Obje
 		val, err := iterator.fromJava(value, env)
 		if err != nil {
 			return err
-		} else {
-			*dest.(*[]any) = append(*dest.(*[]any), val)
 		}
+
+		*dest.(*[]any) = append(*dest.(*[]any), val)
 	}
 
 	return nil

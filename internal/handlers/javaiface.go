@@ -60,13 +60,13 @@ func CheckForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz strin
 				}
 				return dest, nil
 
-			} else {
-				dest := make([]any, 0)
-				if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
-					return "", err
-				}
-				return dest, nil
 			}
+			dest := make([]any, 0)
+			if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
+				return "", err
+			}
+			return dest, nil
+
 		}
 	}
 

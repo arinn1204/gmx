@@ -65,14 +65,6 @@ type BeanExecutor interface {
 	Close()
 }
 
-func (mbean *Client) Get(domainName string, beanName string, attributeName string) (string, error) {
-	return "", nil
-}
-
-func (mbean *Client) Put(domainName string, beanName string, attributeName string, value any) (string, error) {
-	return "", nil
-}
-
 // RegisterClassHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) error {

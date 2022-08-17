@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// MapClassPath is the class path for the standard java map interface
 	MapClassPath = "java.util.Map"
 )
 
