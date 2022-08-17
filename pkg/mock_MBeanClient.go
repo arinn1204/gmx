@@ -103,21 +103,25 @@ func (_m *MockMBeanClient) ExecuteAgainstID(id uuid.UUID, domain string, name st
 }
 
 // Get provides a mock function with given fields: domain, beanName, attributeName
-func (_m *MockMBeanClient) Get(domain string, beanName string, attributeName string) (string, error) {
+func (_m *MockMBeanClient) Get(domain string, beanName string, attributeName string) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	ret := _m.Called(domain, beanName, attributeName)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
+	var r0 map[uuid.UUID]string
+	if rf, ok := ret.Get(0).(func(string, string, string) map[uuid.UUID]string); ok {
 		r0 = rf(domain, beanName, attributeName)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[uuid.UUID]string)
+		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+	var r1 map[uuid.UUID]error
+	if rf, ok := ret.Get(1).(func(string, string, string) map[uuid.UUID]error); ok {
 		r1 = rf(domain, beanName, attributeName)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(map[uuid.UUID]error)
+		}
 	}
 
 	return r0, r1
@@ -145,44 +149,39 @@ func (_m *MockMBeanClient) GetById(id uuid.UUID, domain string, beanName string,
 }
 
 // Initialize provides a mock function with given fields:
-func (_m *MockMBeanClient) Initialize() (*Client, error) {
+func (_m *MockMBeanClient) Initialize() error {
 	ret := _m.Called()
 
-	var r0 *Client
-	if rf, ok := ret.Get(0).(func() *Client); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*Client)
-		}
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // Put provides a mock function with given fields: domain, beanName, attributeName, value
-func (_m *MockMBeanClient) Put(domain string, beanName string, attributeName string, value interface{}) (string, error) {
+func (_m *MockMBeanClient) Put(domain string, beanName string, attributeName string, value interface{}) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	ret := _m.Called(domain, beanName, attributeName, value)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) string); ok {
+	var r0 map[uuid.UUID]string
+	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) map[uuid.UUID]string); ok {
 		r0 = rf(domain, beanName, attributeName, value)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[uuid.UUID]string)
+		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) error); ok {
+	var r1 map[uuid.UUID]error
+	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) map[uuid.UUID]error); ok {
 		r1 = rf(domain, beanName, attributeName, value)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(map[uuid.UUID]error)
+		}
 	}
 
 	return r0, r1

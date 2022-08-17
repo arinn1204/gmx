@@ -1,6 +1,7 @@
 package gmx
 
 import (
+	"log"
 	"sync"
 
 	"github.com/arinn1204/gmx/internal/mbean"
@@ -24,12 +25,20 @@ type MBeanClient interface {
 	// Initialize will initialize the client:
 	// This starts the JVM and registers all basic class and interface handlers
 	// Basic handlers are: Integer, Double, String, Float, Boolean, Long, List, Set, Map<String, Object>
-	Initialize() (*Client, error)
+	Initialize() error
 
 	// Close will close all connections that have been created and then shut down the JVM
 	Close()
 
+	// RegisterClassHandler will register a new class handler
+	// This is needed if executing operations or retrieving/updating attributes
+	// that require more complex objects. The default handlers only include primitives and strings
 	RegisterClassHandler(typeName string, handler extensions.IHandler)
+
+	// RegisterInterfaceHandler will register a new interface handler
+	// In the event no class handler is found for a given type, we will then scan the available
+	// interfaces implemented by the type. This will then check all the included handlers to determine
+	// how to convert between go and jni
 	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
 
 	// Connect will create a new mbean connection defined by the hostname and port
@@ -40,10 +49,10 @@ type MBeanClient interface {
 	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
 
 	// Get will fetch an attribute by a given name for the given bean across all connections
-	Get(domain string, beanName string, attributeName string) (string, error)
+	Get(domain string, beanName string, attributeName string) (map[uuid.UUID]string, map[uuid.UUID]error)
 
 	// Put will change the given attribute across all connections
-	Put(domain string, beanName string, attributeName string, value any) (string, error)
+	Put(domain string, beanName string, attributeName string, value any) (map[uuid.UUID]string, map[uuid.UUID]error)
 
 	// ExecuteAgainstAll will execute an operation against *all* connected beans.
 	// These are ran in their own go routines. If there concerns/desired constraints please define MaxNumberOfGoRoutines
@@ -89,8 +98,25 @@ type batchExecutionResult struct {
 	err    error
 }
 
-func CreateClient() {
+func CreateClient() MBeanClient {
+	client := &Client{}
+	if err := client.Initialize(); err != nil {
+		log.Fatal(err)
+	}
 
+	return client
+}
+
+func CreateClientWithLimitation(limit uint) MBeanClient {
+	client := &Client{
+		maxNumberOfGoRoutines: limit,
+	}
+
+	if err := client.Initialize(); err != nil {
+		log.Fatal(err)
+	}
+
+	return client
 }
 
 // ExecuteAgainstAll will execute a single command against every mbean that is currently registered.
