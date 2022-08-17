@@ -18,15 +18,20 @@ type Client struct {
 	interfaceHandlers map[string]extensions.InterfaceHandler
 }
 
+type Handler interface {
+	RegisterClassHandler(typeName string, handler extensions.IHandler)
+	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
+}
+
 // MBeanOperator is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
 type MBeanOperator interface {
 	Initialize() (*Client, error)
 	Close()
-	RegisterClassHandler(typeName string, handler extensions.IHandler)
-	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
 	Connect(hostname string, port int) (*uuid.UUID, error)
 	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
+	Get(domain string, beanName string, attributeName string) (string, error)
+	Put(domain string, beanName string, attributeName string, value any) (string, error)
 }
 
 // MBeanArgs is the container for the operation arguments.
