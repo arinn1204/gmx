@@ -70,8 +70,8 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	var mbean2 mbean.BeanExecutor
 
 	mbean1, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	defer mbean1.Close()
 	assert.Nil(t, err)
+	defer mbean1.Close()
 	registerHandlers(mbean1)
 
 	mbean2, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
@@ -254,8 +254,8 @@ func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T)
 			data := testData{value: str, className: fmt.Sprintf("java.lang.%s", innerType), containerName: fmt.Sprintf("java.util.%s", collectionType), operationName: fmt.Sprintf("put%s", collectionType)}
 
 			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-			defer mbean.Close()
 			assert.Nil(t, err)
+			defer mbean.Close()
 			registerHandlers(mbean)
 
 			insertData(java.Env, data, t, mbean)

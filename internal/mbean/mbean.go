@@ -115,25 +115,20 @@ func (mbean *Client) Execute(operation Operation) (string, error) {
 }
 
 func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi.ObjectRef) error {
-	mbeanName := fmt.Sprintf("%s:name=%s", operation.Domain, operation.Name)
-	objectParam, err := stringHandler.ToJniRepresentation(env, mbeanName)
-
-	defer env.DeleteLocalRef(objectParam)
-	if err != nil {
-		return err
-	}
-
-	objectName, err := env.NewObject("javax/management/ObjectName", objectParam)
-	defer env.DeleteLocalRef(objectName)
+	objectName, err := getObjectName(env, operation)
 	if err != nil {
 		return errors.New("failed to create ObjectName::" + err.Error())
 	}
 
-	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	defer env.DeleteLocalRef(mBeanServerConnector)
-	if err = mbean.JmxConnection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+	defer env.DeleteLocalRef(objectName)
+
+	mBeanServerConnector, err := createMBeanServerConnection(env, mbean)
+
+	if err != nil {
 		return errors.New("failed to create the mbean server connection::" + err.Error())
 	}
+
+	defer env.DeleteLocalRef(mBeanServerConnector)
 
 	typeReferences, types, err := getOperationParameterTypes(env, objectName, mBeanServerConnector, operation.Operation)
 
@@ -169,29 +164,7 @@ func (mbean *Client) getArray(env *jnigi.Env, args []OperationArgs, methodTypes 
 	types := make([]*jnigi.ObjectRef, 0)
 	for i, arg := range args {
 
-		var err error
-		var obj *jnigi.ObjectRef
-
-		var exists bool
-		var handler extensions.IHandler
-		var interfaceHandler extensions.InterfaceHandler
-
-		// the containers are always assumed to be interfaces
-		if interfaceHandler, exists = mbean.InterfaceHandlers[methodTypes[i]]; exists && arg.JavaContainerType != "" {
-
-			obj, err = interfaceHandler.ToJniRepresentation(env, arg.JavaType, arg.Value)
-
-		} else if handler, exists = mbean.ClassHandlers[methodTypes[i]]; exists {
-			var parsedVal any
-
-			parsedVal, err = toTypeFromString(arg.Value, methodTypes[i])
-
-			if err != nil {
-				return nil, err
-			}
-
-			obj, err = handler.ToJniRepresentation(env, parsedVal)
-		}
+		obj, err := toJni(mbean, methodTypes[i], arg.JavaType, arg.JavaContainerType, arg.Value)
 
 		if err != nil {
 			return nil, err
@@ -201,4 +174,35 @@ func (mbean *Client) getArray(env *jnigi.Env, args []OperationArgs, methodTypes 
 	}
 
 	return env.ToObjectArray(types, className), nil
+}
+
+func createMBeanServerConnection(env *jnigi.Env, mbean *Client) (*jnigi.ObjectRef, error) {
+	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
+	if err := mbean.JmxConnection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
+	}
+
+	return mBeanServerConnector, nil
+}
+
+func toJni(mbean *Client, methodType string, javaType string, containerType string, value string) (*jnigi.ObjectRef, error) {
+
+	// the containers are always assumed to be interfaces
+	if interfaceHandler, exists := mbean.InterfaceHandlers[methodType]; exists && containerType != "" {
+
+		return interfaceHandler.ToJniRepresentation(mbean.Env, javaType, value)
+
+	} else if handler, exists := mbean.ClassHandlers[methodType]; exists {
+		var parsedVal any
+
+		parsedVal, err := toTypeFromString(value, methodType)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return handler.ToJniRepresentation(mbean.Env, parsedVal)
+	}
+
+	return nil, fmt.Errorf("no handlers exist for %s", javaType)
 }
