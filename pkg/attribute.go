@@ -31,7 +31,9 @@ func (manager *attributeManager) GetById(id uuid.UUID, domain string, beanName s
 		)
 	}
 
-	return "", nil
+	mbeanClient := (*manager.mbeans)[id]
+
+	return mbeanClient.Get(domain, beanName, attributeName, operationArgs...)
 }
 
 func (manager *attributeManager) PutById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error) {
@@ -46,5 +48,7 @@ func (manager *attributeManager) PutById(id uuid.UUID, domain string, beanName s
 			},
 		)
 	}
-	return "", nil
+	mbeanClient := (*manager.mbeans)[id]
+
+	return mbeanClient.Put(domain, beanName, attributeName, operationArgs...)
 }
