@@ -40,20 +40,27 @@ func (_m *MockBeanExecutor) Execute(operation Operation) (string, error) {
 	return r0, r1
 }
 
-// Get provides a mock function with given fields: domainName, beanName, attributeName
-func (_m *MockBeanExecutor) Get(domainName string, beanName string, attributeName string) (string, error) {
-	ret := _m.Called(domainName, beanName, attributeName)
+// Get provides a mock function with given fields: domainName, beanName, attributeName, args
+func (_m *MockBeanExecutor) Get(domainName string, beanName string, attributeName string, args ...OperationArgs) (string, error) {
+	_va := make([]interface{}, len(args))
+	for _i := range args {
+		_va[_i] = args[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, domainName, beanName, attributeName)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
-		r0 = rf(domainName, beanName, attributeName)
+	if rf, ok := ret.Get(0).(func(string, string, string, ...OperationArgs) string); ok {
+		r0 = rf(domainName, beanName, attributeName, args...)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(domainName, beanName, attributeName)
+	if rf, ok := ret.Get(1).(func(string, string, string, ...OperationArgs) error); ok {
+		r1 = rf(domainName, beanName, attributeName, args...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -77,20 +84,27 @@ func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 	return r0
 }
 
-// Put provides a mock function with given fields: domainName, beanName, attributeName, value
-func (_m *MockBeanExecutor) Put(domainName string, beanName string, attributeName string, value interface{}) (string, error) {
-	ret := _m.Called(domainName, beanName, attributeName, value)
+// Put provides a mock function with given fields: domainName, beanName, attributeName, args
+func (_m *MockBeanExecutor) Put(domainName string, beanName string, attributeName string, args ...OperationArgs) (string, error) {
+	_va := make([]interface{}, len(args))
+	for _i := range args {
+		_va[_i] = args[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, domainName, beanName, attributeName)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) string); ok {
-		r0 = rf(domainName, beanName, attributeName, value)
+	if rf, ok := ret.Get(0).(func(string, string, string, ...OperationArgs) string); ok {
+		r0 = rf(domainName, beanName, attributeName, args...)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) error); ok {
-		r1 = rf(domainName, beanName, attributeName, value)
+	if rf, ok := ret.Get(1).(func(string, string, string, ...OperationArgs) error); ok {
+		r1 = rf(domainName, beanName, attributeName, args...)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1,23 +1,50 @@
 package gmx
 
-import "github.com/google/uuid"
+import (
+	"github.com/arinn1204/gmx/internal/mbean"
+	"github.com/google/uuid"
+)
 
-func (manager *attributeManager) Get(domain string, beanName string, attributeName string) (map[uuid.UUID]string, map[uuid.UUID]error) {
+func (manager *attributeManager) Get(domain string, beanName string, attributeName string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	return internalExecuteAgainstAll(manager.mbeans, manager.maxNumberOfGoRoutines, func(u uuid.UUID) (string, error) {
-		return manager.GetById(u, domain, beanName, attributeName)
+		return manager.GetById(u, domain, beanName, attributeName, args...)
 	})
 }
 
-func (manager *attributeManager) Put(domain string, beanName string, attributeName string, value any) (map[uuid.UUID]string, map[uuid.UUID]error) {
+func (manager *attributeManager) Put(domain string, beanName string, attributeName string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	return internalExecuteAgainstAll(manager.mbeans, manager.maxNumberOfGoRoutines, func(u uuid.UUID) (string, error) {
-		return manager.PutById(u, domain, beanName, attributeName, value)
+		return manager.PutById(u, domain, beanName, attributeName, args...)
 	})
 }
 
-func (manager *attributeManager) GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error) {
+func (manager *attributeManager) GetById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error) {
+	operationArgs := make([]mbean.OperationArgs, 0)
+
+	for _, arg := range args {
+		operationArgs = append(
+			operationArgs,
+			mbean.OperationArgs{
+				Value:             arg.Value,
+				JavaType:          arg.JavaType,
+				JavaContainerType: arg.JavaContainerType,
+			},
+		)
+	}
+
 	return "", nil
 }
 
-func (manager *attributeManager) PutById(id uuid.UUID, domain string, beanName string, attributeName string, value any) (string, error) {
+func (manager *attributeManager) PutById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error) {
+	operationArgs := make([]mbean.OperationArgs, 0)
+	for _, arg := range args {
+		operationArgs = append(
+			operationArgs,
+			mbean.OperationArgs{
+				Value:             arg.Value,
+				JavaType:          arg.JavaType,
+				JavaContainerType: arg.JavaContainerType,
+			},
+		)
+	}
 	return "", nil
 }

@@ -70,16 +70,26 @@ type MBeanClient interface {
 type MBeanAttributeManager interface {
 
 	// Get will fetch an attribute by a given name for the given bean across all connections
-	Get(domain string, beanName string, attributeName string) (map[uuid.UUID]string, map[uuid.UUID]error)
+	// The args are required in order to be able to deserialize lists from attributes
+	//
+	// JavaType and JavaContainerType are only required for Lists/Sets/Maps and any other generic collections
+	// Value is not used here
+	Get(domain string, beanName string, attributeName string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 
 	// Put will change the given attribute across all connections
-	Put(domain string, beanName string, attributeName string, value any) (map[uuid.UUID]string, map[uuid.UUID]error)
+	// The args are required in order to be able to serialize data being sent to the attribute
+	Put(domain string, beanName string, attributeName string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 
 	// GetById will execute Get against the one given ID.
-	GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error)
+	// The args are required in order to be able to deserialize lists from attributes
+	//
+	// JavaType and JavaContainerType are only required for Lists/Sets/Maps and any other generic collections
+	// Value is not used here
+	GetById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error)
 
 	// PutById will execute Put against the one given ID.
-	PutById(id uuid.UUID, domain string, beanName string, attributeName string, value any) (string, error)
+	// The args are required in order to be able to serialize data being sent to the attribute
+	PutById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error)
 }
 
 // MBeanOperator is a type that is responsible for executing operations against a defined mbean
@@ -197,6 +207,9 @@ func internalExecuteAgainstAll(mbeans *map[uuid.UUID]mbean.BeanExecutor, maxNumb
 	return result, receivedErrors
 }
 
+// GetOperator is a function that returns an mbean operator
+// This will be used to execute operations against any given mbean that is
+// registered with the client
 func (client *client) GetOperator() MBeanOperator {
 	return &operator{
 		maxNumberOfGoRoutines: client.maxNumberOfGoRoutines,
@@ -206,6 +219,9 @@ func (client *client) GetOperator() MBeanOperator {
 	}
 }
 
+// GetAttributeManager is a function that returns an mbean attribute manager
+// This will be used to read and update attributes for any/all mbeans that are associated
+// with the client that creates the manager
 func (client *client) GetAttributeManager() MBeanAttributeManager {
 	return &attributeManager{
 		maxNumberOfGoRoutines: client.maxNumberOfGoRoutines,
