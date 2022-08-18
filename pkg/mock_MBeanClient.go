@@ -42,110 +42,36 @@ func (_m *MockMBeanClient) Connect(hostname string, port int) (*uuid.UUID, error
 	return r0, r1
 }
 
-// ExecuteAgainstAll provides a mock function with given fields: domain, name, operation, args
-func (_m *MockMBeanClient) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	_va := make([]interface{}, len(args))
-	for _i := range args {
-		_va[_i] = args[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, domain, name, operation)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// GetAttributeManager provides a mock function with given fields:
+func (_m *MockMBeanClient) GetAttributeManager() MBeanAttributeManager {
+	ret := _m.Called()
 
-	var r0 map[uuid.UUID]string
-	if rf, ok := ret.Get(0).(func(string, string, string, ...MBeanArgs) map[uuid.UUID]string); ok {
-		r0 = rf(domain, name, operation, args...)
+	var r0 MBeanAttributeManager
+	if rf, ok := ret.Get(0).(func() MBeanAttributeManager); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[uuid.UUID]string)
+			r0 = ret.Get(0).(MBeanAttributeManager)
 		}
 	}
 
-	var r1 map[uuid.UUID]error
-	if rf, ok := ret.Get(1).(func(string, string, string, ...MBeanArgs) map[uuid.UUID]error); ok {
-		r1 = rf(domain, name, operation, args...)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(map[uuid.UUID]error)
-		}
-	}
-
-	return r0, r1
+	return r0
 }
 
-// ExecuteAgainstID provides a mock function with given fields: id, domain, name, operation, args
-func (_m *MockMBeanClient) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error) {
-	_va := make([]interface{}, len(args))
-	for _i := range args {
-		_va[_i] = args[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, id, domain, name, operation)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// GetOperator provides a mock function with given fields:
+func (_m *MockMBeanClient) GetOperator() MBeanOperator {
+	ret := _m.Called()
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(uuid.UUID, string, string, string, ...MBeanArgs) string); ok {
-		r0 = rf(id, domain, name, operation, args...)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(uuid.UUID, string, string, string, ...MBeanArgs) error); ok {
-		r1 = rf(id, domain, name, operation, args...)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Get provides a mock function with given fields: domain, beanName, attributeName
-func (_m *MockMBeanClient) Get(domain string, beanName string, attributeName string) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	ret := _m.Called(domain, beanName, attributeName)
-
-	var r0 map[uuid.UUID]string
-	if rf, ok := ret.Get(0).(func(string, string, string) map[uuid.UUID]string); ok {
-		r0 = rf(domain, beanName, attributeName)
+	var r0 MBeanOperator
+	if rf, ok := ret.Get(0).(func() MBeanOperator); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[uuid.UUID]string)
+			r0 = ret.Get(0).(MBeanOperator)
 		}
 	}
 
-	var r1 map[uuid.UUID]error
-	if rf, ok := ret.Get(1).(func(string, string, string) map[uuid.UUID]error); ok {
-		r1 = rf(domain, beanName, attributeName)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(map[uuid.UUID]error)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetById provides a mock function with given fields: id, domain, beanName, attributeName
-func (_m *MockMBeanClient) GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error) {
-	ret := _m.Called(id, domain, beanName, attributeName)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(uuid.UUID, string, string, string) string); ok {
-		r0 = rf(id, domain, beanName, attributeName)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(uuid.UUID, string, string, string) error); ok {
-		r1 = rf(id, domain, beanName, attributeName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // Initialize provides a mock function with given fields:
@@ -160,52 +86,6 @@ func (_m *MockMBeanClient) Initialize() error {
 	}
 
 	return r0
-}
-
-// Put provides a mock function with given fields: domain, beanName, attributeName, value
-func (_m *MockMBeanClient) Put(domain string, beanName string, attributeName string, value interface{}) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	ret := _m.Called(domain, beanName, attributeName, value)
-
-	var r0 map[uuid.UUID]string
-	if rf, ok := ret.Get(0).(func(string, string, string, interface{}) map[uuid.UUID]string); ok {
-		r0 = rf(domain, beanName, attributeName, value)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[uuid.UUID]string)
-		}
-	}
-
-	var r1 map[uuid.UUID]error
-	if rf, ok := ret.Get(1).(func(string, string, string, interface{}) map[uuid.UUID]error); ok {
-		r1 = rf(domain, beanName, attributeName, value)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(map[uuid.UUID]error)
-		}
-	}
-
-	return r0, r1
-}
-
-// PutById provides a mock function with given fields: id, domain, beanName, attributeName, value
-func (_m *MockMBeanClient) PutById(id uuid.UUID, domain string, beanName string, attributeName string, value interface{}) (string, error) {
-	ret := _m.Called(id, domain, beanName, attributeName, value)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(uuid.UUID, string, string, string, interface{}) string); ok {
-		r0 = rf(id, domain, beanName, attributeName, value)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(uuid.UUID, string, string, string, interface{}) error); ok {
-		r1 = rf(id, domain, beanName, attributeName, value)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // RegisterClassHandler provides a mock function with given fields: typeName, handler

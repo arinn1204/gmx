@@ -18,7 +18,7 @@ func TestInitialize_CalledFirstTime(t *testing.T) {
 
 	java = mockJava
 
-	client := &Client{}
+	client := &client{}
 
 	client.Initialize()
 
@@ -36,7 +36,7 @@ func TestInitialize_SimulatedRaceCondition(t *testing.T) {
 
 	java = mockJava
 
-	client := &Client{}
+	client := &client{}
 
 	client.Initialize()
 
@@ -54,7 +54,7 @@ func TestInitialize_OnlyEverCalledOnce(t *testing.T) {
 	mockJava.On("IsStarted").Return(true).Once()
 	java = mockJava
 
-	client := &Client{}
+	client := &client{}
 
 	//can't really do true parallel testing with a mock jvm
 	client.Initialize()
@@ -71,7 +71,7 @@ func TestConnect_HappyPath(t *testing.T) {
 
 	java = mockJava
 
-	client := &Client{
+	client := &client{
 		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
 	}
 
@@ -89,7 +89,7 @@ func TestConnect_ConnectFails(t *testing.T) {
 
 	java = mockJava
 
-	client := &Client{
+	client := &client{
 		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
 	}
 
@@ -107,7 +107,7 @@ func TestClose_WithConnections(t *testing.T) {
 
 	java = mockJVM
 
-	client := &Client{
+	client := &client{
 		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
 	}
 

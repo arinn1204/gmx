@@ -13,11 +13,25 @@ import (
 // Client is the main mbean client.
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
-type Client struct {
+type client struct {
 	maxNumberOfGoRoutines uint                             // The maximum number of goroutines to be used when doing parallel operations
 	mbeans                map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
 	classHandlers         map[string]extensions.IHandler   // The map of type handlers to be used
 	interfaceHandlers     map[string]extensions.InterfaceHandler
+}
+
+type attributeManager struct {
+	maxNumberOfGoRoutines uint
+	mbeans                *map[uuid.UUID]mbean.BeanExecutor
+	classHandlers         *map[string]extensions.IHandler // The map of type handlers to be used
+	interfaceHandlers     *map[string]extensions.InterfaceHandler
+}
+
+type operator struct {
+	maxNumberOfGoRoutines uint
+	mbeans                *map[uuid.UUID]mbean.BeanExecutor
+	classHandlers         *map[string]extensions.IHandler // The map of type handlers to be used
+	interfaceHandlers     *map[string]extensions.InterfaceHandler
 }
 
 // MBeanClient is an interface that describes the functions needed to fully operate against MBeans over JMXRMI
@@ -45,8 +59,15 @@ type MBeanClient interface {
 	// The reference to this connection is stored for the life of the operator
 	Connect(hostname string, port int) (*uuid.UUID, error)
 
-	// ExecuteAgainstID will execute an operation against the given id. This will only target the provided ID
-	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
+	// This will return the type that is responsible for executing operations
+	GetOperator() MBeanOperator
+
+	// This will return the attribute manager
+	GetAttributeManager() MBeanAttributeManager
+}
+
+// MBeanAttributeManager is a type that will be responsible for managing attributes of a given mbean
+type MBeanAttributeManager interface {
 
 	// Get will fetch an attribute by a given name for the given bean across all connections
 	Get(domain string, beanName string, attributeName string) (map[uuid.UUID]string, map[uuid.UUID]error)
@@ -54,15 +75,22 @@ type MBeanClient interface {
 	// Put will change the given attribute across all connections
 	Put(domain string, beanName string, attributeName string, value any) (map[uuid.UUID]string, map[uuid.UUID]error)
 
-	// ExecuteAgainstAll will execute an operation against *all* connected beans.
-	// These are ran in their own go routines. If there concerns/desired constraints please define MaxNumberOfGoRoutines
-	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
-
 	// GetById will execute Get against the one given ID.
 	GetById(id uuid.UUID, domain string, beanName string, attributeName string) (string, error)
 
 	// PutById will execute Put against the one given ID.
 	PutById(id uuid.UUID, domain string, beanName string, attributeName string, value any) (string, error)
+}
+
+// MBeanOperator is a type that is responsible for executing operations against a defined mbean
+type MBeanOperator interface {
+
+	// ExecuteAgainstID will execute an operation against the given id. This will only target the provided ID
+	ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error)
+
+	// ExecuteAgainstAll will execute an operation against *all* connected beans.
+	// These are ran in their own go routines. If there concerns/desired constraints please define MaxNumberOfGoRoutines
+	ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 }
 
 // MBeanArgs is the container for the operation arguments.
@@ -98,8 +126,10 @@ type batchExecutionResult struct {
 	err    error
 }
 
+// CreateClient is a method that will create an unbound MBeanClient
+// This means that it will consume as many native threads as there are connected mbeans
 func CreateClient() MBeanClient {
-	client := &Client{}
+	client := &client{}
 	if err := client.Initialize(); err != nil {
 		log.Fatal(err)
 	}
@@ -107,8 +137,10 @@ func CreateClient() MBeanClient {
 	return client
 }
 
+// CreateClient is a method that will create a bound MBeanClient
+// This will only use as many native threads as provided by limit
 func CreateClientWithLimitation(limit uint) MBeanClient {
-	client := &Client{
+	client := &client{
 		maxNumberOfGoRoutines: limit,
 	}
 
@@ -119,60 +151,19 @@ func CreateClientWithLimitation(limit uint) MBeanClient {
 	return client
 }
 
-// ExecuteAgainstAll will execute a single command against every mbean that is currently registered.
-// This will return a mapping of all results and errors, based on the UUID that the connection has been assigned.
-//
-// All executions will be run in separate go routines, so this needs to be planned for accordingly
-func (client *Client) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	return client.internalExecuteAgainstAll(func(id uuid.UUID) (string, error) {
-		return client.ExecuteAgainstID(id, domain, name, operation, args...)
-	})
-}
-
-// ExecuteAgainstID is a method that will take a given operation and MBean ID and make the JMX request.
-// It will return whatever is returned downstream, errors and all
-func (client *Client) ExecuteAgainstID(id uuid.UUID, domain string, name string, operation string, args ...MBeanArgs) (string, error) {
-	env := java.Attach()
-	defer java.Detach()
-
-	bean := client.mbeans[id].WithEnvironment(env)
-
-	operationArgs := make([]mbean.OperationArgs, 0)
-
-	for _, arg := range args {
-		operationArgs = append(
-			operationArgs,
-			mbean.OperationArgs{
-				Value:             arg.Value,
-				JavaType:          arg.JavaType,
-				JavaContainerType: arg.JavaContainerType,
-			},
-		)
-	}
-
-	mbeanOp := mbean.Operation{
-		Domain:    domain,
-		Name:      name,
-		Operation: operation,
-		Args:      operationArgs,
-	}
-
-	return bean.Execute(mbeanOp)
-}
-
-func (client *Client) internalExecuteAgainstAll(execution func(uuid.UUID) (string, error)) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	results := make(chan batchExecutionResult, len(client.mbeans))
+func internalExecuteAgainstAll(mbeans *map[uuid.UUID]mbean.BeanExecutor, maxNumberOfGoRoutines uint, execution func(uuid.UUID) (string, error)) (map[uuid.UUID]string, map[uuid.UUID]error) {
+	results := make(chan batchExecutionResult, len(*mbeans))
 	wg := &sync.WaitGroup{}
 
-	maxLimitOfConcurrency := len(client.mbeans)
+	maxLimitOfConcurrency := len(*mbeans)
 
-	if client.maxNumberOfGoRoutines > 0 {
-		maxLimitOfConcurrency = int(client.maxNumberOfGoRoutines)
+	if maxNumberOfGoRoutines > 0 {
+		maxLimitOfConcurrency = int(maxNumberOfGoRoutines)
 	}
 
 	guard := make(chan struct{}, maxLimitOfConcurrency)
 
-	for id := range client.mbeans {
+	for id := range *mbeans {
 
 		// this will block if there are no available threads
 		guard <- struct{}{}
@@ -196,7 +187,7 @@ func (client *Client) internalExecuteAgainstAll(execution func(uuid.UUID) (strin
 	result := make(map[uuid.UUID]string)
 	receivedErrors := make(map[uuid.UUID]error)
 
-	for i := 0; i < len(client.mbeans); i++ {
+	for i := 0; i < len(*mbeans); i++ {
 		res := <-results
 
 		result[res.id] = res.result
@@ -204,4 +195,22 @@ func (client *Client) internalExecuteAgainstAll(execution func(uuid.UUID) (strin
 	}
 
 	return result, receivedErrors
+}
+
+func (client *client) GetOperator() MBeanOperator {
+	return &operator{
+		maxNumberOfGoRoutines: client.maxNumberOfGoRoutines,
+		mbeans:                &client.mbeans,
+		classHandlers:         &client.classHandlers,
+		interfaceHandlers:     &client.interfaceHandlers,
+	}
+}
+
+func (client *client) GetAttributeManager() MBeanAttributeManager {
+	return &attributeManager{
+		maxNumberOfGoRoutines: client.maxNumberOfGoRoutines,
+		mbeans:                &client.mbeans,
+		classHandlers:         &client.classHandlers,
+		interfaceHandlers:     &client.interfaceHandlers,
+	}
 }

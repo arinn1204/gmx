@@ -25,7 +25,7 @@ func init() {
 
 // RegisterClassHandler is the method to use when wanting to register additional handlers
 // By default this client will handle everything in internal/handlers
-func (client *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) {
+func (client *client) RegisterClassHandler(typeName string, handler extensions.IHandler) {
 	client.classHandlers[typeName] = handler
 
 	for _, bean := range client.mbeans {
@@ -35,7 +35,7 @@ func (client *Client) RegisterClassHandler(typeName string, handler extensions.I
 
 // RegisterInterfaceHandler is the method to use when wanting to register
 // additional handlers that will blanket apply to a Java interface
-func (client *Client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) {
+func (client *client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) {
 	client.interfaceHandlers[typeName] = handler
 
 	for _, bean := range client.mbeans {
@@ -43,7 +43,7 @@ func (client *Client) RegisterInterfaceHandler(typeName string, handler extensio
 	}
 }
 
-func (client *Client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
+func (client *client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
 	for typeName, handler := range client.classHandlers {
 		bean.RegisterClassHandler(typeName, handler)
 	}
@@ -57,7 +57,7 @@ func (client *Client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
 
 // Initialize is the initial method to create a GMX client.
 // This will initialize the JVM if necessary as well as setting up the object
-func (client *Client) Initialize() error {
+func (client *client) Initialize() error {
 	startJvm()
 
 	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
@@ -81,7 +81,7 @@ func (client *Client) Initialize() error {
 // connect to the remote server and assign the given connection a UUID.
 // The GMX client will store references to MBean clients, the UUID's will be
 // helpful if wanting to be able to tell which MBeans go to which location
-func (client *Client) Connect(hostname string, port int) (*uuid.UUID, error) {
+func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
 	bean, err := java.CreateMBeanConnection(jmxURI)
 
@@ -98,7 +98,7 @@ func (client *Client) Connect(hostname string, port int) (*uuid.UUID, error) {
 
 // Close is a method that will close the connection. It will free up any resources
 // that the GMX client is still holding on as well as shutting down the JVM
-func (client *Client) Close() {
+func (client *client) Close() {
 	for uri := range client.mbeans {
 		client.mbeans[uri].Close()
 		client.mbeans[uri] = nil

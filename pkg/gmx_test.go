@@ -56,11 +56,13 @@ func TestExecuteAgainstID(t *testing.T) {
 
 		mbeans[id] = executor
 
-		client := Client{
+		client := client{
 			mbeans: mbeans,
 		}
 
-		val, err := client.ExecuteAgainstID(id, "org.example", "game", "getValue", args...)
+		operator := client.GetOperator()
+
+		val, err := operator.ExecuteAgainstID(id, "org.example", "game", "getValue", args...)
 
 		assert.Nil(t, err)
 		assert.Equal(t, "hello", val)
@@ -104,11 +106,12 @@ func TestExecuteAgainstAll(t *testing.T) {
 	mbeans[locationID] = &locationExecutor
 	mbeans[gameID] = &gameExecutor
 
-	client := Client{
+	client := client{
 		mbeans: mbeans,
 	}
+	operator := client.GetOperator()
 
-	res, err := client.ExecuteAgainstAll("com.google", "spyware", "getLocation")
+	res, err := operator.ExecuteAgainstAll("com.google", "spyware", "getLocation")
 
 	assert.Nil(t, err[gameID])
 	assert.Nil(t, err[locationID])
