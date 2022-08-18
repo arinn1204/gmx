@@ -10,7 +10,7 @@ import (
 
 // Run is the main entry point for the cli
 func Run(domain string, name string, operation string, args string, types string, containerTypes string) {
-	client := &gmx.Client{}
+	client := gmx.CreateClient()
 	err := client.Initialize()
 
 	if err != nil {
@@ -43,7 +43,9 @@ func Run(domain string, name string, operation string, args string, types string
 		})
 	}
 
-	result, err := client.ExecuteAgainstID(
+	operator := client.GetOperator()
+
+	result, err := operator.ExecuteAgainstID(
 		*id,
 		domain,
 		name,
