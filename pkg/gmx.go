@@ -74,22 +74,22 @@ type MBeanAttributeManager interface {
 	//
 	// JavaType and JavaContainerType are only required for Lists/Sets/Maps and any other generic collections
 	// Value is not used here
-	Get(domain string, beanName string, attributeName string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
+	Get(domain string, beanName string, attributeName string, args MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 
 	// Put will change the given attribute across all connections
 	// The args are required in order to be able to serialize data being sent to the attribute
-	Put(domain string, beanName string, attributeName string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
+	Put(domain string, beanName string, attributeName string, args MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error)
 
 	// GetById will execute Get against the one given ID.
 	// The args are required in order to be able to deserialize lists from attributes
 	//
 	// JavaType and JavaContainerType are only required for Lists/Sets/Maps and any other generic collections
 	// Value is not used here
-	GetById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error)
+	GetById(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error)
 
 	// PutById will execute Put against the one given ID.
 	// The args are required in order to be able to serialize data being sent to the attribute
-	PutById(id uuid.UUID, domain string, beanName string, attributeName string, args ...MBeanArgs) (string, error)
+	PutById(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error)
 }
 
 // MBeanOperator is a type that is responsible for executing operations against a defined mbean

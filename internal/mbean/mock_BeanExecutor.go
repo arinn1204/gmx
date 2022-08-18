@@ -41,26 +41,19 @@ func (_m *MockBeanExecutor) Execute(operation Operation) (string, error) {
 }
 
 // Get provides a mock function with given fields: domainName, beanName, attributeName, args
-func (_m *MockBeanExecutor) Get(domainName string, beanName string, attributeName string, args ...OperationArgs) (string, error) {
-	_va := make([]interface{}, len(args))
-	for _i := range args {
-		_va[_i] = args[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, domainName, beanName, attributeName)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+func (_m *MockBeanExecutor) Get(domainName string, beanName string, attributeName string, args OperationArgs) (string, error) {
+	ret := _m.Called(domainName, beanName, attributeName, args)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, ...OperationArgs) string); ok {
-		r0 = rf(domainName, beanName, attributeName, args...)
+	if rf, ok := ret.Get(0).(func(string, string, string, OperationArgs) string); ok {
+		r0 = rf(domainName, beanName, attributeName, args)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, ...OperationArgs) error); ok {
-		r1 = rf(domainName, beanName, attributeName, args...)
+	if rf, ok := ret.Get(1).(func(string, string, string, OperationArgs) error); ok {
+		r1 = rf(domainName, beanName, attributeName, args)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -85,26 +78,19 @@ func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 }
 
 // Put provides a mock function with given fields: domainName, beanName, attributeName, args
-func (_m *MockBeanExecutor) Put(domainName string, beanName string, attributeName string, args ...OperationArgs) (string, error) {
-	_va := make([]interface{}, len(args))
-	for _i := range args {
-		_va[_i] = args[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, domainName, beanName, attributeName)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+func (_m *MockBeanExecutor) Put(domainName string, beanName string, attributeName string, args OperationArgs) (string, error) {
+	ret := _m.Called(domainName, beanName, attributeName, args)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, string, string, ...OperationArgs) string); ok {
-		r0 = rf(domainName, beanName, attributeName, args...)
+	if rf, ok := ret.Get(0).(func(string, string, string, OperationArgs) string); ok {
+		r0 = rf(domainName, beanName, attributeName, args)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, ...OperationArgs) error); ok {
-		r1 = rf(domainName, beanName, attributeName, args...)
+	if rf, ok := ret.Get(1).(func(string, string, string, OperationArgs) error); ok {
+		r1 = rf(domainName, beanName, attributeName, args)
 	} else {
 		r1 = ret.Error(1)
 	}
