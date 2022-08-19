@@ -65,6 +65,10 @@ func TestCanReadAndSetPrimitiveAttributes(t *testing.T) {
 }
 
 func TestCanReadAndWriteCollectionAttributes(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
+
 	collections := []string{"List", "Set"}
 	floatValues := []float32{float32(rand.Float32()), float32(rand.Float32()), float32(rand.Float32())}
 	stringValues := []string{"hello", "world", "whatsgoinonyo"}
@@ -121,6 +125,10 @@ func TestCanReadAndWriteCollectionAttributes(t *testing.T) {
 }
 
 func TestCanReadAndWriteNestedLists(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping Integration tests when running short mode")
+	}
+
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
