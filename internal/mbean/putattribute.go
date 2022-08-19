@@ -20,11 +20,6 @@ func (mbean *Client) Put(domainName string, beanName string, attributeName strin
 
 	defer mbean.Env.DeleteLocalRef(mBeanServerConnector)
 
-	if err != nil {
-		return "", errors.New("failed to create the mbean server connection::" + err.Error())
-	}
-
-	defer mbean.Env.DeleteLocalRef(mBeanServerConnector)
 	var attributeType string
 	var innerType string
 
@@ -56,7 +51,7 @@ func (mbean *Client) Put(domainName string, beanName string, attributeName strin
 
 	attribute, err := mbean.createAttributeJni(mbean.Env, operation, innerType, attributeType, args.Value)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	defer mbean.Env.DeleteLocalRef(attribute)

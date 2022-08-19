@@ -140,6 +140,43 @@ func TestCanReadAndWriteNestedLists(t *testing.T) {
 	expected[0] = []int{1, 2, 3}
 
 	assert.Equal(t, expected, val)
+}
+
+func TestCanGetAndSetMapAttributes(t *testing.T) {
+	expected := map[string]int{
+		"one": 1,
+		"two": 2,
+	}
+
+	lockCurrentThread(java)
+	defer unlockCurrentThread(java)
+
+	bean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	assert.Nil(t, err)
+	registerHandlers(bean)
+	defer bean.Close()
+
+	b, err := json.Marshal(expected)
+	assert.Nil(t, err)
+
+	data := testData{
+		value:         string(b),
+		className:     "java.lang.Integer",
+		containerName: "java.util.Map",
+		operationName: "MapAttribute",
+	}
+
+	strRes, err := bean.Get("org.example", "game", "MapAttribute", mbean.OperationArgs{
+		Value:             data.value,
+		JavaType:          data.className,
+		JavaContainerType: data.containerName,
+	})
+	assert.Nil(t, err)
+
+	received := make(map[string]int)
+	json.Unmarshal([]byte(strRes), &received)
+
+	assert.Equal(t, expected, received)
 
 }
 
