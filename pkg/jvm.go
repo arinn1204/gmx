@@ -71,8 +71,9 @@ func (client *client) Initialize() error {
 	client.RegisterClassHandler(handlers.LongClasspath, &handlers.LongHandler{})
 	client.RegisterClassHandler(handlers.StringClasspath, &handlers.StringHandler{})
 
-	client.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: &client.classHandlers})
-	client.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: &client.classHandlers})
+	client.RegisterInterfaceHandler(handlers.ListClassPath, &handlers.ListHandler{ClassHandlers: &client.classHandlers, InterfaceHandlers: &client.interfaceHandlers})
+	client.RegisterInterfaceHandler(handlers.SetClassPath, &handlers.SetHandler{ClassHandlers: &client.classHandlers, InterfaceHandlers: &client.interfaceHandlers})
+	client.RegisterInterfaceHandler(handlers.MapClassPath, &handlers.MapHandler{ClassHandlers: &client.classHandlers, InterfaceHandlers: &client.interfaceHandlers})
 
 	return nil
 }
