@@ -118,6 +118,28 @@ func TestCanReadAndWriteCollectionAttributes(t *testing.T) {
 
 		})
 	}
+}
+
+func TestCanReadAndWriteNestedLists(t *testing.T) {
+	lockCurrentThread(java)
+	defer unlockCurrentThread(java)
+
+	bean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
+	assert.Nil(t, err)
+	registerHandlers(bean)
+	defer bean.Close()
+
+	res, err := bean.Get("org.example", "game", "NestedAttribute", mbean.OperationArgs{})
+
+	assert.Nil(t, err)
+
+	val := make([][]int, 0)
+	json.Unmarshal([]byte(res), &val)
+
+	expected := make([][]int, 1)
+	expected[0] = []int{1, 2, 3}
+
+	assert.Equal(t, expected, val)
 
 }
 
