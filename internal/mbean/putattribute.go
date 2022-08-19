@@ -39,8 +39,8 @@ func (mbean *Client) Put(domainName string, beanName string, attributeName strin
 		attributeType = args.JavaContainerType
 		innerType = args.JavaType
 	} else {
-		attributeType = ""
-		innerType, err = mbean.getAttributeType(mBeanServerConnector, mbean.Env, operation)
+		innerType = ""
+		attributeType, err = mbean.getAttributeType(mBeanServerConnector, mbean.Env, operation)
 	}
 
 	if err != nil {
@@ -78,7 +78,7 @@ func (mbean *Client) createAttributeJni(env *jnigi.Env, operation Operation, inn
 
 	defer env.DeleteLocalRef(nameRef)
 
-	attributeRef, err := toJni(mbean, innerType, innerType, attributeType, value)
+	attributeRef, err := toJni(mbean, attributeType, innerType, attributeType, value)
 
 	if err != nil {
 		return nil, err

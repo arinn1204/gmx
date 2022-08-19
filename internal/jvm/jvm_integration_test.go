@@ -223,7 +223,8 @@ func toString(value any, t *testing.T) string {
 		assert.Nil(t, err)
 		return string(b)
 	default:
-		assert.Fail(t, fmt.Sprintf("unkown type %s", reflect.TypeOf(value).Name()))
+		name := reflect.TypeOf(value).Name()
+		assert.Fail(t, fmt.Sprintf("unkown type %s", name))
 		return ""
 	}
 }
