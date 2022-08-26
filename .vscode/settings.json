@@ -1,0 +1,13 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "go.toolsEnvVars": {
+        "CGO_CFLAGS": "-I/Users/arinn/.jenv/versions/18.0/include -I/Users/arinn/.jenv/versions/18.0/include/darwin",
+        "CGO_LDFLAGS": "-L/Users/arinn/.jenv/versions/18.0/lib -L/Users/arinn/.jenv/versions/18.0/lib/server -ljvm"
+    },
+    "go.testEnvVars": {
+        "CGO_CFLAGS": "-I/Users/arinn/.jenv/versions/18.0/include -I/Users/arinn/.jenv/versions/18.0/include/darwin",
+        "CGO_LDFLAGS": "-L/Users/arinn/.jenv/versions/18.0/lib -L/Users/arinn/.jenv/versions/18.0/lib/server -ljvm",
+        "TEST_ENV": "IT",
+        "CGO_ENABLED": "1"
+    }
+}
