@@ -50,8 +50,8 @@ func (iterator iterableRef[T]) fromJava(param *jnigi.ObjectRef, env *jnigi.Env) 
 	handlers := *iterator.classHandlers
 
 	// always go class and then interface
-	if handler, exists := handlers[cls]; exists {
-		return getFromClassHandler(cls, handler, env, param)
+	if handler, exists := handlers.Load(cls); exists {
+		return getFromClassHandler(cls, handler.(extensions.IHandler), env, param)
 	}
 
 	return CheckForKnownInterfaces(env, param, cls, iterator.interfaceHandlers)

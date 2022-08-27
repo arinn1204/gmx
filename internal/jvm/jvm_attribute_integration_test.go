@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/arinn1204/gmx/internal/mbean"
-	"github.com/arinn1204/gmx/pkg/extensions"
 	"github.com/stretchr/testify/assert"
 	"tekao.net/jnigi"
 )
@@ -53,8 +53,8 @@ func TestCanReadAndSetPrimitiveAttributes(t *testing.T) {
 
 			mbean := &mbean.Client{
 				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-				ClassHandlers:     make(map[string]extensions.IHandler),
-				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
 				Env:               java.Env,
 			}
 
@@ -108,8 +108,8 @@ func TestCanReadAndWriteCollectionAttributes(t *testing.T) {
 
 			mbean := &mbean.Client{
 				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-				ClassHandlers:     make(map[string]extensions.IHandler),
-				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
 				Env:               java.Env,
 			}
 
@@ -143,8 +143,8 @@ func TestCanReadAndWriteNestedLists(t *testing.T) {
 
 	bean := &mbean.Client{
 		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-		ClassHandlers:     make(map[string]extensions.IHandler),
-		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
 		Env:               java.Env,
 	}
 
@@ -174,8 +174,8 @@ func TestCanGetAndSetMapAttributes(t *testing.T) {
 
 	bean := &mbean.Client{
 		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-		ClassHandlers:     make(map[string]extensions.IHandler),
-		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
 		Env:               java.Env,
 	}
 

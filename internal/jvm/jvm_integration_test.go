@@ -13,7 +13,6 @@ import (
 
 	"github.com/arinn1204/gmx/internal/handlers"
 	"github.com/arinn1204/gmx/internal/mbean"
-	"github.com/arinn1204/gmx/pkg/extensions"
 
 	"github.com/stretchr/testify/assert"
 	"tekao.net/jnigi"
@@ -43,16 +42,16 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 
 	mbean1 := &mbean.Client{
 		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-		ClassHandlers:     make(map[string]extensions.IHandler),
-		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
 		Env:               java.Env,
 	}
 
 	registerHandlers(mbean1)
 	mbean2 := &mbean.Client{
 		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-		ClassHandlers:     make(map[string]extensions.IHandler),
-		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
 		Env:               java.Env,
 	}
 
@@ -125,8 +124,8 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 
 		mbean := &mbean.Client{
 			JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-			ClassHandlers:     make(map[string]extensions.IHandler),
-			InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+			ClassHandlers:     sync.Map{},
+			InterfaceHandlers: sync.Map{},
 			Env:               java.Env,
 		}
 
@@ -154,8 +153,8 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 
 		mbean := &mbean.Client{
 			JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-			ClassHandlers:     make(map[string]extensions.IHandler),
-			InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+			ClassHandlers:     sync.Map{},
+			InterfaceHandlers: sync.Map{},
 			Env:               java.Env,
 		}
 
@@ -247,8 +246,8 @@ func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T)
 
 			mbean := &mbean.Client{
 				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-				ClassHandlers:     make(map[string]extensions.IHandler),
-				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
 				Env:               java.Env,
 			}
 
@@ -347,8 +346,8 @@ func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
 
 			mbean := &mbean.Client{
 				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-				ClassHandlers:     make(map[string]extensions.IHandler),
-				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
 				Env:               java.Env,
 			}
 
@@ -460,8 +459,8 @@ func TestCanCallIntoJmxAndGetResultWithCollections(t *testing.T) {
 
 				mbean := &mbean.Client{
 					JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-					ClassHandlers:     make(map[string]extensions.IHandler),
-					InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+					ClassHandlers:     sync.Map{},
+					InterfaceHandlers: sync.Map{},
 					Env:               java.Env,
 				}
 
@@ -593,8 +592,8 @@ func TestCanCallIntoJmxAndGetResultWithPrimitiveTypes(t *testing.T) {
 
 			bean := &mbean.Client{
 				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
-				ClassHandlers:     make(map[string]extensions.IHandler),
-				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
 				Env:               java.Env,
 			}
 

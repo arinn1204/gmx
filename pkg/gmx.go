@@ -13,27 +13,27 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type client struct {
-	maxNumberOfGoRoutines uint                           // The maximum number of goroutines to be used when doing parallel operations
-	mbeans                sync.Map                       // The map of underlying clients. The map is identified as id -> client
-	numberOfConnections   uint                           //The number of active connections in the client
-	classHandlers         map[string]extensions.IHandler // The map of type handlers to be used
-	interfaceHandlers     map[string]extensions.InterfaceHandler
+	maxNumberOfGoRoutines uint     // The maximum number of goroutines to be used when doing parallel operations
+	numberOfConnections   uint     //The number of active connections in the client
+	mbeans                sync.Map // The map of underlying clients. The map is identified as id -> client
+	classHandlers         sync.Map // The map of type handlers to be used
+	interfaceHandlers     sync.Map
 }
 
 type attributeManager struct {
 	maxNumberOfGoRoutines uint
 	numberOfConnections   *uint //The number of active connections in the client
 	mbeans                *sync.Map
-	classHandlers         *map[string]extensions.IHandler // The map of type handlers to be used
-	interfaceHandlers     *map[string]extensions.InterfaceHandler
+	classHandlers         *sync.Map // The map of type handlers to be used
+	interfaceHandlers     *sync.Map
 }
 
 type operator struct {
 	maxNumberOfGoRoutines uint
+	numberOfConnections   *uint //The number of active connections in the client
 	mbeans                *sync.Map
-	numberOfConnections   *uint                           //The number of active connections in the client
-	classHandlers         *map[string]extensions.IHandler // The map of type handlers to be used
-	interfaceHandlers     *map[string]extensions.InterfaceHandler
+	classHandlers         *sync.Map // The map of type handlers to be used
+	interfaceHandlers     *sync.Map
 }
 
 // MBeanClient is an interface that describes the functions needed to fully operate against MBeans over JMXRMI

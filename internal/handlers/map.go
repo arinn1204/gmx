@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"errors"
+	"sync"
 
-	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -14,8 +14,8 @@ const (
 
 // MapHandler is the type that will be able to convert maps to and from go arrays
 type MapHandler struct {
-	ClassHandlers     *map[string]extensions.IHandler
-	InterfaceHandlers *map[string]extensions.InterfaceHandler
+	ClassHandlers     *sync.Map
+	InterfaceHandlers *sync.Map
 }
 
 // ToJniRepresentation is the ability to translate from a go map to a java map

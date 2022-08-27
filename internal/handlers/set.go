@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 
-	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -17,8 +17,8 @@ const (
 
 // SetHandler is the type that will be able to convert lists to and from go arrays
 type SetHandler struct {
-	ClassHandlers     *map[string]extensions.IHandler
-	InterfaceHandlers *map[string]extensions.InterfaceHandler
+	ClassHandlers     *sync.Map
+	InterfaceHandlers *sync.Map
 }
 
 // ToJniRepresentation is the implementation that will convert from a go type
@@ -94,7 +94,7 @@ func (handler *SetHandler) ToGoRepresentation(env *jnigi.Env, object *jnigi.Obje
 	return nil
 }
 
-func createJavaSet[T any](env *jnigi.Env, arr []T, handlers *map[string]extensions.IHandler) (*iterableRef[T], error) {
+func createJavaSet[T any](env *jnigi.Env, arr []T, handlers *sync.Map) (*iterableRef[T], error) {
 	size := len(arr)
 	arrayList, err := env.NewObject("java/util/HashSet", size)
 	if err != nil {

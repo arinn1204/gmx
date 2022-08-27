@@ -3,6 +3,7 @@ package mbean
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
@@ -22,8 +23,8 @@ const (
 type Client struct {
 	JmxURI            string
 	Env               *jnigi.Env
-	ClassHandlers     map[string]extensions.IHandler
-	InterfaceHandlers map[string]extensions.InterfaceHandler
+	ClassHandlers     sync.Map
+	InterfaceHandlers sync.Map
 }
 
 // Operation is the operation that is being performed
@@ -68,14 +69,14 @@ type BeanExecutor interface {
 // RegisterClassHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) error {
-	mbean.ClassHandlers[typeName] = handler
+	mbean.ClassHandlers.Store(typeName, handler)
 	return nil
 }
 
 // RegisterInterfaceHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) error {
-	mbean.InterfaceHandlers[typeName] = handler
+	mbean.InterfaceHandlers.Store(typeName, handler)
 	return nil
 }
 
@@ -222,11 +223,11 @@ func createMBeanServerConnection(env *jnigi.Env, connection *jnigi.ObjectRef) (*
 func toJni(mbean *Client, methodType string, javaType string, containerType string, value string) (*jnigi.ObjectRef, error) {
 
 	// the containers are always assumed to be interfaces
-	if interfaceHandler, exists := mbean.InterfaceHandlers[methodType]; exists && containerType != "" {
+	if interfaceHandler, exists := mbean.InterfaceHandlers.Load(methodType); exists && containerType != "" {
 
-		return interfaceHandler.ToJniRepresentation(mbean.Env, javaType, value)
+		return interfaceHandler.(extensions.InterfaceHandler).ToJniRepresentation(mbean.Env, javaType, value)
 
-	} else if handler, exists := mbean.ClassHandlers[methodType]; exists {
+	} else if handler, exists := mbean.ClassHandlers.Load(methodType); exists {
 		var parsedVal any
 
 		parsedVal, err := toTypeFromString(value, methodType)
@@ -235,7 +236,7 @@ func toJni(mbean *Client, methodType string, javaType string, containerType stri
 			return nil, err
 		}
 
-		return handler.ToJniRepresentation(mbean.Env, parsedVal)
+		return handler.(extensions.IHandler).ToJniRepresentation(mbean.Env, parsedVal)
 	}
 
 	return nil, fmt.Errorf("no handlers exist for %s", javaType)
