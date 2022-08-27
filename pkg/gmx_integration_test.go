@@ -38,6 +38,9 @@ func TestCanMakeMultipleAccountsInParralel(t *testing.T) {
 
 	c := gmxClient.(*client)
 	assert.Equal(t, uint(totalConnections), c.numberOfConnections)
+
+	c.Close()
+	assert.Equal(t, uint(0), c.numberOfConnections)
 }
 
 func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
@@ -70,4 +73,7 @@ func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
 
 	c := gmxClient.(*client)
 	assert.Equal(t, uint(totalConnections), c.numberOfConnections)
+
+	c.Close()
+	assert.Equal(t, uint(0), c.numberOfConnections)
 }

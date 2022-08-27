@@ -5,8 +5,6 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/arinn1204/gmx/internal/mbean"
-
 	"tekao.net/jnigi"
 )
 
@@ -21,12 +19,11 @@ type Java struct {
 // It allows for creation and cleanup. Only one JVM needs to be started.
 // It can then be shared out between goroutines to do with as needed
 type IJava interface {
-	CreateJVM() (IJava, error)                                    // Will create and start the JVM for any JNI threads to communicate with
-	ShutdownJvm() error                                           // Will cleanup any threads remaining and close the JVM
-	Attach() *jnigi.Env                                           // Will attach the current running thread to the JVM
-	Detach()                                                      // Will detach the current thread from the JNI environment
-	IsStarted() bool                                              // A simple flag indicating whether or not the JVM has started running
-	CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) // The factory method for all bean connections
+	CreateJVM() (IJava, error) // Will create and start the JVM for any JNI threads to communicate with
+	ShutdownJvm() error        // Will cleanup any threads remaining and close the JVM
+	Attach() *jnigi.Env        // Will attach the current running thread to the JVM
+	Detach()                   // Will detach the current thread from the JNI environment
+	IsStarted() bool           // A simple flag indicating whether or not the JVM has started running
 }
 
 // Attach is the method to attach the current thread to the JNI environment.

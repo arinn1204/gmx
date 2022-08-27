@@ -1,7 +1,6 @@
 package gmx
 
 import (
-	"errors"
 	"sync"
 	"testing"
 
@@ -65,45 +64,6 @@ func TestInitialize_OnlyEverCalledOnce(t *testing.T) {
 	mockJava.AssertNumberOfCalls(t, "CreateJVM", 1)
 }
 
-func TestConnect_HappyPath(t *testing.T) {
-	mockJava := &jvm.MockIJava{}
-	mockExecutor := &mbean.MockBeanExecutor{}
-	mockJava.On("CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi").Return(mockExecutor, nil)
-
-	java = mockJava
-
-	client := &client{
-		mbeans: sync.Map{},
-	}
-
-	id, err := client.Connect("localhost", 9001)
-
-	assert.Nil(t, err)
-	mockJava.AssertCalled(t, "CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi")
-
-	exec, ok := client.mbeans.Load(*id)
-
-	assert.True(t, ok)
-	assert.Equal(t, exec, mockExecutor)
-}
-
-func TestConnect_ConnectFails(t *testing.T) {
-	mockJava := &jvm.MockIJava{}
-	mockJava.On("CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi").Return(nil, errors.New("something went wrong"))
-
-	java = mockJava
-
-	client := &client{
-		mbeans: sync.Map{},
-	}
-
-	id, err := client.Connect("localhost", 9001)
-
-	assert.Nil(t, id)
-
-	assert.Equal(t, errors.New("failed to create a connection::something went wrong"), err)
-}
-
 func TestClose_WithConnections(t *testing.T) {
 	mockJVM := &jvm.MockIJava{}
 
@@ -129,6 +89,5 @@ func TestClose_WithConnections(t *testing.T) {
 	assert.False(t, ok)
 	assert.Nil(t, exec)
 
-	mockBean.AssertCalled(t, "Close")
 	mockJVM.AssertCalled(t, "ShutdownJvm")
 }

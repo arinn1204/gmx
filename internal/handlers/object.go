@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"sync"
 
-	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
-func populateGenericContainer[T any](env *jnigi.Env, collection *iterableRef[T], arr []T, handlers *map[string]extensions.IHandler) (*jnigi.ObjectRef, error) {
+func populateGenericContainer[T any](env *jnigi.Env, collection *iterableRef[T], arr []T, handlers *sync.Map) (*jnigi.ObjectRef, error) {
 	for _, item := range arr {
 		if err := collection.add(env, item); err != nil {
 			return nil, err

@@ -3,6 +3,7 @@ package mbean
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
@@ -20,10 +21,10 @@ const (
 // JmxConnection is the living connection that was created when `CreateMBeanConnection` was called to create the Client
 // Env is the environment that belongs to this bean, this will not always match the JVM env!
 type Client struct {
-	JmxConnection     *jnigi.ObjectRef
+	JmxURI            string
 	Env               *jnigi.Env
-	ClassHandlers     map[string]extensions.IHandler
-	InterfaceHandlers map[string]extensions.InterfaceHandler
+	ClassHandlers     sync.Map
+	InterfaceHandlers sync.Map
 }
 
 // Operation is the operation that is being performed
@@ -62,20 +63,20 @@ type BeanExecutor interface {
 	Put(domainName string, beanName string, attributeName string, args OperationArgs) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
-	Close()
+	OpenConnection(jndiURI string) (*jnigi.ObjectRef, error)
 }
 
 // RegisterClassHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterClassHandler(typeName string, handler extensions.IHandler) error {
-	mbean.ClassHandlers[typeName] = handler
+	mbean.ClassHandlers.Store(typeName, handler)
 	return nil
 }
 
 // RegisterInterfaceHandler will register the given class handlers
 // For a class handler to be valid it must implement a form of IClassHandler
 func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) error {
-	mbean.InterfaceHandlers[typeName] = handler
+	mbean.InterfaceHandlers.Store(typeName, handler)
 	return nil
 }
 
@@ -83,7 +84,6 @@ func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extension
 // This is handy when using the same JmxConnection in sub threads
 func (mbean *Client) WithEnvironment(env *jnigi.Env) BeanExecutor {
 	return &Client{
-		JmxConnection:     mbean.JmxConnection,
 		Env:               env,
 		ClassHandlers:     mbean.ClassHandlers,
 		InterfaceHandlers: mbean.InterfaceHandlers,
@@ -98,9 +98,37 @@ func (mbean *Client) GetEnv() *jnigi.Env {
 // Close is a method that will clean up all of the MBeans resources
 // It will close the JMX method within the JVM as well as deleting the connection
 // from the JNI resources
-func (mbean *Client) Close() {
-	defer mbean.Env.DeleteLocalRef(mbean.JmxConnection)
-	mbean.JmxConnection.CallMethod(mbean.Env, "close", nil)
+func Close(env *jnigi.Env, connection *jnigi.ObjectRef) {
+	defer env.DeleteLocalRef(connection)
+	connection.CallMethod(env, "close", nil)
+}
+
+// OpenConnection is a method that will establish a new connection against
+// the given URI
+func (mbean *Client) OpenConnection(jndiURI string) (*jnigi.ObjectRef, error) {
+	stringRef, err := mbean.Env.NewObject("java/lang/String", []byte(jndiURI))
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create a string from %s::%s", jndiURI, err.Error())
+	}
+
+	jmxURL, err := mbean.Env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
+	if err != nil {
+		return nil, errors.New("failed to create JMXServiceURL::" + err.Error())
+	}
+
+	if err != nil {
+		return nil, errors.New("failed to create a blank map::" + err.Error())
+	}
+
+	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
+
+	connectorFactory := "javax/management/remote/JMXConnectorFactory"
+	if err = mbean.Env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxURL); err != nil {
+		return nil, errors.New("failed to create a JMX connection Factory::" + err.Error())
+	}
+
+	return jmxConnector, nil
 }
 
 // Execute is the orchestration for a JMX command execution.
@@ -122,7 +150,14 @@ func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi
 
 	defer env.DeleteLocalRef(objectName)
 
-	mBeanServerConnector, err := createMBeanServerConnection(env, mbean)
+	connection, err := mbean.OpenConnection(mbean.JmxURI)
+	if err != nil {
+		return err
+	}
+
+	defer Close(mbean.Env, connection)
+
+	mBeanServerConnector, err := createMBeanServerConnection(env, connection)
 
 	if err != nil {
 		return errors.New("failed to create the mbean server connection::" + err.Error())
@@ -176,9 +211,9 @@ func (mbean *Client) getArray(env *jnigi.Env, args []OperationArgs, methodTypes 
 	return env.ToObjectArray(types, className), nil
 }
 
-func createMBeanServerConnection(env *jnigi.Env, mbean *Client) (*jnigi.ObjectRef, error) {
+func createMBeanServerConnection(env *jnigi.Env, connection *jnigi.ObjectRef) (*jnigi.ObjectRef, error) {
 	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	if err := mbean.JmxConnection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+	if err := connection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
 		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 
@@ -188,11 +223,11 @@ func createMBeanServerConnection(env *jnigi.Env, mbean *Client) (*jnigi.ObjectRe
 func toJni(mbean *Client, methodType string, javaType string, containerType string, value string) (*jnigi.ObjectRef, error) {
 
 	// the containers are always assumed to be interfaces
-	if interfaceHandler, exists := mbean.InterfaceHandlers[methodType]; exists && containerType != "" {
+	if interfaceHandler, exists := mbean.InterfaceHandlers.Load(methodType); exists && containerType != "" {
 
-		return interfaceHandler.ToJniRepresentation(mbean.Env, javaType, value)
+		return interfaceHandler.(extensions.InterfaceHandler).ToJniRepresentation(mbean.Env, javaType, value)
 
-	} else if handler, exists := mbean.ClassHandlers[methodType]; exists {
+	} else if handler, exists := mbean.ClassHandlers.Load(methodType); exists {
 		var parsedVal any
 
 		parsedVal, err := toTypeFromString(value, methodType)
@@ -201,7 +236,7 @@ func toJni(mbean *Client, methodType string, javaType string, containerType stri
 			return nil, err
 		}
 
-		return handler.ToJniRepresentation(mbean.Env, parsedVal)
+		return handler.(extensions.IHandler).ToJniRepresentation(mbean.Env, parsedVal)
 	}
 
 	return nil, fmt.Errorf("no handlers exist for %s", javaType)

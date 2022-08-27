@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
@@ -54,7 +55,7 @@ func getInterfaces(env *jnigi.Env, cls *jnigi.ObjectRef) ([]*jnigi.ObjectRef, er
 
 // CheckForKnownInterfaces is a function that will check if the object has an interface that can be
 // processed by the given handlers
-func CheckForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz string, interfaceHandlers *map[string]extensions.InterfaceHandler) (any, error) {
+func CheckForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz string, interfaceHandlers *sync.Map) (any, error) {
 	cls, err := getClass(param, env)
 	if err != nil {
 		return nil, err
@@ -80,19 +81,19 @@ func CheckForKnownInterfaces(env *jnigi.Env, param *jnigi.ObjectRef, clazz strin
 			return "", err
 		}
 
-		if handler, exists := (*interfaceHandlers)[cls]; exists {
+		if handler, exists := (*interfaceHandlers).Load(cls); exists {
 
 			if cls == MapClassPath {
 				dest := make(map[string]any)
 
-				if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
+				if err := handler.(extensions.InterfaceHandler).ToGoRepresentation(env, param, &dest); err != nil {
 					return "", err
 				}
 				return dest, nil
 
 			}
 			dest := make([]any, 0)
-			if err := handler.ToGoRepresentation(env, param, &dest); err != nil {
+			if err := handler.(extensions.InterfaceHandler).ToGoRepresentation(env, param, &dest); err != nil {
 				return "", err
 			}
 			return dest, nil

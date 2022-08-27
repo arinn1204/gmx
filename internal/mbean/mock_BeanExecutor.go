@@ -14,11 +14,6 @@ type MockBeanExecutor struct {
 	mock.Mock
 }
 
-// Close provides a mock function with given fields:
-func (_m *MockBeanExecutor) Close() {
-	_m.Called()
-}
-
 // Execute provides a mock function with given fields: operation
 func (_m *MockBeanExecutor) Execute(operation Operation) (string, error) {
 	ret := _m.Called(operation)
@@ -75,6 +70,29 @@ func (_m *MockBeanExecutor) GetEnv() *jnigi.Env {
 	}
 
 	return r0
+}
+
+// OpenConnection provides a mock function with given fields: jndiURI
+func (_m *MockBeanExecutor) OpenConnection(jndiURI string) (*jnigi.ObjectRef, error) {
+	ret := _m.Called(jndiURI)
+
+	var r0 *jnigi.ObjectRef
+	if rf, ok := ret.Get(0).(func(string) *jnigi.ObjectRef); ok {
+		r0 = rf(jndiURI)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*jnigi.ObjectRef)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(jndiURI)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Put provides a mock function with given fields: domainName, beanName, attributeName, args

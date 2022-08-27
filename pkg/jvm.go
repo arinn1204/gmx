@@ -1,7 +1,6 @@
 package gmx
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -26,7 +25,7 @@ func init() {
 // RegisterClassHandler is the method to use when wanting to register additional handlers
 // By default this client will handle everything in internal/handlers
 func (client *client) RegisterClassHandler(typeName string, handler extensions.IHandler) {
-	client.classHandlers[typeName] = handler
+	client.classHandlers.Store(typeName, handler)
 
 	client.mbeans.Range(func(key, value any) bool {
 		value.(mbean.BeanExecutor).RegisterClassHandler(typeName, handler)
@@ -37,7 +36,7 @@ func (client *client) RegisterClassHandler(typeName string, handler extensions.I
 // RegisterInterfaceHandler is the method to use when wanting to register
 // additional handlers that will blanket apply to a Java interface
 func (client *client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) {
-	client.interfaceHandlers[typeName] = handler
+	client.interfaceHandlers.Store(typeName, handler)
 
 	client.mbeans.Range(func(key, value any) bool {
 		value.(mbean.BeanExecutor).RegisterInterfaceHandler(typeName, handler)
@@ -46,13 +45,19 @@ func (client *client) RegisterInterfaceHandler(typeName string, handler extensio
 }
 
 func (client *client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
-	for typeName, handler := range client.classHandlers {
+	client.classHandlers.Range(func(key, value any) bool {
+		typeName := key.(string)
+		handler := value.(extensions.IHandler)
 		bean.RegisterClassHandler(typeName, handler)
-	}
+		return true
+	})
 
-	for typeName, handler := range client.interfaceHandlers {
+	client.interfaceHandlers.Range(func(key, value any) bool {
+		typeName := key.(string)
+		handler := value.(extensions.InterfaceHandler)
 		bean.RegisterInterfaceHandler(typeName, handler)
-	}
+		return true
+	})
 
 	client.inc()
 	client.mbeans.Store(id, bean)
@@ -64,8 +69,8 @@ func (client *client) Initialize() error {
 	startJvm()
 
 	client.mbeans = sync.Map{}
-	client.classHandlers = make(map[string]extensions.IHandler)
-	client.interfaceHandlers = make(map[string]extensions.InterfaceHandler)
+	client.classHandlers = sync.Map{}
+	client.interfaceHandlers = sync.Map{}
 
 	client.RegisterClassHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
 	client.RegisterClassHandler(handlers.DoubleClasspath, &handlers.DoubleHandler{})
@@ -99,10 +104,11 @@ func (client *client) dec() {
 // helpful if wanting to be able to tell which MBeans go to which location
 func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
-	bean, err := java.CreateMBeanConnection(jmxURI)
 
-	if err != nil {
-		return nil, errors.New("failed to create a connection::" + err.Error())
+	bean := &mbean.Client{
+		JmxURI:            jmxURI,
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
 	}
 
 	id := uuid.New()
@@ -115,18 +121,12 @@ func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 // that the GMX client is still holding on as well as shutting down the JVM
 func (client *client) Close() {
 
-	keys := make([]uuid.UUID, 0)
 	client.mbeans.Range(func(key, value any) bool {
-		bean := value.(mbean.BeanExecutor)
-		bean.Close()
-		keys = append(keys, key.(uuid.UUID))
-		return true
-	})
-
-	for _, key := range keys {
 		client.mbeans.Delete(key)
 		client.dec()
-	}
+		return true
+
+	})
 
 	java.ShutdownJvm()
 }

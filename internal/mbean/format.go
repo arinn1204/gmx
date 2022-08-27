@@ -29,9 +29,9 @@ func (mbean *Client) toGoString(env *jnigi.Env, param *jnigi.ObjectRef) (string,
 		return "", err
 	}
 
-	if handler, exists := mbean.ClassHandlers[clazz]; exists {
+	if handler, exists := mbean.ClassHandlers.Load(clazz); exists {
 		_ = handler
-		return fromJava(clazz, env, param, handler)
+		return fromJava(clazz, env, param, handler.(extensions.IHandler))
 	}
 
 	val, err := handlers.CheckForKnownInterfaces(env, param, clazz, &mbean.InterfaceHandlers)

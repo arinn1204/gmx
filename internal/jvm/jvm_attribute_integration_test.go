@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/arinn1204/gmx/internal/mbean"
@@ -50,10 +51,14 @@ func TestCanReadAndSetPrimitiveAttributes(t *testing.T) {
 				operationName: fmt.Sprintf("%sAttribute", primitive),
 			}
 
-			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-			assert.Nil(t, err)
+			mbean := &mbean.Client{
+				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
+				Env:               java.Env,
+			}
+
 			registerHandlers(mbean)
-			defer mbean.Close()
 
 			updateAttribute(java.Env, data, t, mbean)
 
@@ -101,10 +106,14 @@ func TestCanReadAndWriteCollectionAttributes(t *testing.T) {
 				operationName: fmt.Sprintf("%sAttribute", collection),
 			}
 
-			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-			assert.Nil(t, err)
+			mbean := &mbean.Client{
+				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+				ClassHandlers:     sync.Map{},
+				InterfaceHandlers: sync.Map{},
+				Env:               java.Env,
+			}
+
 			registerHandlers(mbean)
-			defer mbean.Close()
 
 			updateAttribute(java.Env, data, t, mbean)
 
@@ -132,10 +141,14 @@ func TestCanReadAndWriteNestedLists(t *testing.T) {
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
-	bean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	assert.Nil(t, err)
+	bean := &mbean.Client{
+		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
+		Env:               java.Env,
+	}
+
 	registerHandlers(bean)
-	defer bean.Close()
 
 	res, err := bean.Get("org.example", "game", "NestedAttribute", mbean.OperationArgs{})
 
@@ -159,10 +172,14 @@ func TestCanGetAndSetMapAttributes(t *testing.T) {
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
-	bean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	assert.Nil(t, err)
+	bean := &mbean.Client{
+		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+		ClassHandlers:     sync.Map{},
+		InterfaceHandlers: sync.Map{},
+		Env:               java.Env,
+	}
+
 	registerHandlers(bean)
-	defer bean.Close()
 
 	b, err := json.Marshal(expected)
 	assert.Nil(t, err)

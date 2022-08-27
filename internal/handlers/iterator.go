@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"errors"
+	"sync"
 
-	"github.com/arinn1204/gmx/pkg/extensions"
 	"tekao.net/jnigi"
 )
 
@@ -17,11 +17,11 @@ const (
 
 type iterableRef[T any] struct {
 	iterable          *jnigi.ObjectRef
-	classHandlers     *map[string]extensions.IHandler
-	interfaceHandlers *map[string]extensions.InterfaceHandler
+	classHandlers     *sync.Map
+	interfaceHandlers *sync.Map
 }
 
-func getIterator(env *jnigi.Env, param *jnigi.ObjectRef, classHandlers *map[string]extensions.IHandler, interfaceHandlers *map[string]extensions.InterfaceHandler) (*iterableRef[any], error) {
+func getIterator(env *jnigi.Env, param *jnigi.ObjectRef, classHandlers *sync.Map, interfaceHandlers *sync.Map) (*iterableRef[any], error) {
 	iterator := jnigi.NewObjectRef(IteratorJniRepresentation)
 
 	if err := param.CallMethod(env, "iterator", iterator); err != nil {
