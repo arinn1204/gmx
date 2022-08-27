@@ -37,8 +37,8 @@ func (_m *MockMBeanAttributeManager) Get(domain string, beanName string, attribu
 	return r0, r1
 }
 
-// GetById provides a mock function with given fields: id, domain, beanName, attributeName, args
-func (_m *MockMBeanAttributeManager) GetById(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
+// GetByID provides a mock function with given fields: id, domain, beanName, attributeName, args
+func (_m *MockMBeanAttributeManager) GetByID(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
 	ret := _m.Called(id, domain, beanName, attributeName, args)
 
 	var r0 string
@@ -83,8 +83,8 @@ func (_m *MockMBeanAttributeManager) Put(domain string, beanName string, attribu
 	return r0, r1
 }
 
-// PutById provides a mock function with given fields: id, domain, beanName, attributeName, args
-func (_m *MockMBeanAttributeManager) PutById(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
+// PutByID provides a mock function with given fields: id, domain, beanName, attributeName, args
+func (_m *MockMBeanAttributeManager) PutByID(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
 	ret := _m.Called(id, domain, beanName, attributeName, args)
 
 	var r0 string

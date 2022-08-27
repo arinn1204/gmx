@@ -9,17 +9,17 @@ import (
 
 func (manager *attributeManager) Get(domain string, beanName string, attributeName string, args MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	return internalExecuteAgainstAll(manager.numberOfConnections, manager.mbeans, manager.maxNumberOfGoRoutines, func(u uuid.UUID) (string, error) {
-		return manager.GetById(u, domain, beanName, attributeName, args)
+		return manager.GetByID(u, domain, beanName, attributeName, args)
 	})
 }
 
 func (manager *attributeManager) Put(domain string, beanName string, attributeName string, args MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
 	return internalExecuteAgainstAll(manager.numberOfConnections, manager.mbeans, manager.maxNumberOfGoRoutines, func(u uuid.UUID) (string, error) {
-		return manager.PutById(u, domain, beanName, attributeName, args)
+		return manager.PutByID(u, domain, beanName, attributeName, args)
 	})
 }
 
-func (manager *attributeManager) GetById(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
+func (manager *attributeManager) GetByID(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
 	operationArgs := mbean.OperationArgs{
 		Value:             args.Value,
 		JavaType:          args.JavaType,
@@ -33,7 +33,7 @@ func (manager *attributeManager) GetById(id uuid.UUID, domain string, beanName s
 	return "", fmt.Errorf("id of %s does not exist as an established connection to execute get on", id.String())
 }
 
-func (manager *attributeManager) PutById(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
+func (manager *attributeManager) PutByID(id uuid.UUID, domain string, beanName string, attributeName string, args MBeanArgs) (string, error) {
 	operationArgs := mbean.OperationArgs{
 		Value:             args.Value,
 		JavaType:          args.JavaType,
