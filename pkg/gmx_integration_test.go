@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCanMakeMultipleAccountsInParralel(t *testing.T) {
+func TestCanMakeMultipleAccountsInParrallel(t *testing.T) {
 	if testing.Short() {
 		return
 	}
@@ -17,6 +17,7 @@ func TestCanMakeMultipleAccountsInParralel(t *testing.T) {
 	wg := sync.WaitGroup{}
 
 	ids := make([]uuid.UUID, 0)
+	lock := sync.Mutex{}
 
 	totalConnections := 10
 
@@ -27,7 +28,9 @@ func TestCanMakeMultipleAccountsInParralel(t *testing.T) {
 			id, err := gmxClient.RegisterBean("127.0.0.1", 9001)
 
 			assert.Nil(t, err)
+			lock.Lock()
 			ids = append(ids, *id)
+			lock.Unlock()
 		}(&wg)
 
 	}
@@ -51,6 +54,7 @@ func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
 	wg := sync.WaitGroup{}
 
 	ids := make([]uuid.UUID, 0)
+	lock := sync.Mutex{}
 
 	totalConnections := 25
 
@@ -62,7 +66,9 @@ func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
 			gmxClient.RegisterClassHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
 
 			assert.Nil(t, err)
+			lock.Lock()
 			ids = append(ids, *id)
+			lock.Unlock()
 		}(&wg)
 
 	}
