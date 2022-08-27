@@ -85,9 +85,6 @@ func (java *Java) ShutdownJvm() error {
 		return nil
 	}
 
-	runtime.UnlockOSThread()
-	java.jvm.DetachCurrentThread()
-
 	if err := java.jvm.Destroy(); err != nil {
 		return err
 	}

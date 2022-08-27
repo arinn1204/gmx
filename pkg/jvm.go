@@ -28,9 +28,10 @@ func init() {
 func (client *client) RegisterClassHandler(typeName string, handler extensions.IHandler) {
 	client.classHandlers[typeName] = handler
 
-	for _, bean := range client.mbeans {
-		bean.RegisterClassHandler(typeName, handler)
-	}
+	client.mbeans.Range(func(key, value any) bool {
+		value.(mbean.BeanExecutor).RegisterClassHandler(typeName, handler)
+		return true
+	})
 }
 
 // RegisterInterfaceHandler is the method to use when wanting to register
@@ -38,9 +39,10 @@ func (client *client) RegisterClassHandler(typeName string, handler extensions.I
 func (client *client) RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler) {
 	client.interfaceHandlers[typeName] = handler
 
-	for _, bean := range client.mbeans {
-		bean.RegisterInterfaceHandler(typeName, handler)
-	}
+	client.mbeans.Range(func(key, value any) bool {
+		value.(mbean.BeanExecutor).RegisterInterfaceHandler(typeName, handler)
+		return true
+	})
 }
 
 func (client *client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
@@ -52,7 +54,8 @@ func (client *client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
 		bean.RegisterInterfaceHandler(typeName, handler)
 	}
 
-	client.mbeans[id] = bean
+	client.inc()
+	client.mbeans.Store(id, bean)
 }
 
 // Initialize is the initial method to create a GMX client.
@@ -60,7 +63,7 @@ func (client *client) registerNewBean(id uuid.UUID, bean mbean.BeanExecutor) {
 func (client *client) Initialize() error {
 	startJvm()
 
-	client.mbeans = make(map[uuid.UUID]mbean.BeanExecutor)
+	client.mbeans = sync.Map{}
 	client.classHandlers = make(map[string]extensions.IHandler)
 	client.interfaceHandlers = make(map[string]extensions.InterfaceHandler)
 
@@ -78,6 +81,18 @@ func (client *client) Initialize() error {
 	return nil
 }
 
+func (client *client) inc() {
+	lock.Lock()
+	client.numberOfConnections++
+	lock.Unlock()
+}
+
+func (client *client) dec() {
+	lock.Lock()
+	client.numberOfConnections--
+	lock.Unlock()
+}
+
 // Connect is the initializing method for the MBean itself. It will
 // connect to the remote server and assign the given connection a UUID.
 // The GMX client will store references to MBean clients, the UUID's will be
@@ -91,7 +106,6 @@ func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 	}
 
 	id := uuid.New()
-
 	client.registerNewBean(id, bean)
 
 	return &id, nil
@@ -100,9 +114,18 @@ func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 // Close is a method that will close the connection. It will free up any resources
 // that the GMX client is still holding on as well as shutting down the JVM
 func (client *client) Close() {
-	for uri := range client.mbeans {
-		client.mbeans[uri].Close()
-		client.mbeans[uri] = nil
+
+	keys := make([]uuid.UUID, 0)
+	client.mbeans.Range(func(key, value any) bool {
+		bean := value.(mbean.BeanExecutor)
+		bean.Close()
+		keys = append(keys, key.(uuid.UUID))
+		return true
+	})
+
+	for _, key := range keys {
+		client.mbeans.Delete(key)
+		client.dec()
 	}
 
 	java.ShutdownJvm()

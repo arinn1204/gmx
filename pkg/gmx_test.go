@@ -2,6 +2,7 @@ package gmx
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/arinn1204/gmx/internal/jvm"
@@ -15,7 +16,7 @@ import (
 func TestExecuteAgainstID(t *testing.T) {
 	id := uuid.New()
 
-	mbeans := make(map[uuid.UUID]mbean.BeanExecutor)
+	mbeans := sync.Map{}
 	executor := &mbean.MockBeanExecutor{}
 
 	mockJava := jvm.MockIJava{}
@@ -54,7 +55,7 @@ func TestExecuteAgainstID(t *testing.T) {
 		executor.On("Execute", expected).Return("hello", nil)
 		executor.On("WithEnvironment", env).Return(executor)
 
-		mbeans[id] = executor
+		mbeans.Store(id, executor)
 
 		client := client{
 			mbeans: mbeans,
@@ -102,12 +103,13 @@ func TestExecuteAgainstAll(t *testing.T) {
 	locationExecutor.On("WithEnvironment", env).Return(&locationExecutor)
 	locationExecutor.On("Execute", operation).Return("CA", nil)
 
-	mbeans := make(map[uuid.UUID]mbean.BeanExecutor)
-	mbeans[locationID] = &locationExecutor
-	mbeans[gameID] = &gameExecutor
+	mbeans := sync.Map{}
+	mbeans.Store(locationID, &locationExecutor)
+	mbeans.Store(gameID, &gameExecutor)
 
 	client := client{
-		mbeans: mbeans,
+		mbeans:              mbeans,
+		numberOfConnections: 2,
 	}
 	operator := client.GetOperator()
 

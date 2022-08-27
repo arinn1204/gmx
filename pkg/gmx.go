@@ -4,7 +4,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/arinn1204/gmx/internal/mbean"
 	"github.com/arinn1204/gmx/pkg/extensions"
 
 	"github.com/google/uuid"
@@ -14,22 +13,25 @@ import (
 // This is responsible for creating the JVM, creating individual MBean Clients, and cleaning it all up
 // The client is also responsible for orchestrating the JMX operations
 type client struct {
-	maxNumberOfGoRoutines uint                             // The maximum number of goroutines to be used when doing parallel operations
-	mbeans                map[uuid.UUID]mbean.BeanExecutor // The map of underlying clients. The map is identified as id -> client
-	classHandlers         map[string]extensions.IHandler   // The map of type handlers to be used
+	maxNumberOfGoRoutines uint                           // The maximum number of goroutines to be used when doing parallel operations
+	mbeans                sync.Map                       // The map of underlying clients. The map is identified as id -> client
+	numberOfConnections   uint                           //The number of active connections in the client
+	classHandlers         map[string]extensions.IHandler // The map of type handlers to be used
 	interfaceHandlers     map[string]extensions.InterfaceHandler
 }
 
 type attributeManager struct {
 	maxNumberOfGoRoutines uint
-	mbeans                *map[uuid.UUID]mbean.BeanExecutor
+	numberOfConnections   *uint //The number of active connections in the client
+	mbeans                *sync.Map
 	classHandlers         *map[string]extensions.IHandler // The map of type handlers to be used
 	interfaceHandlers     *map[string]extensions.InterfaceHandler
 }
 
 type operator struct {
 	maxNumberOfGoRoutines uint
-	mbeans                *map[uuid.UUID]mbean.BeanExecutor
+	mbeans                *sync.Map
+	numberOfConnections   *uint                           //The number of active connections in the client
 	classHandlers         *map[string]extensions.IHandler // The map of type handlers to be used
 	interfaceHandlers     *map[string]extensions.InterfaceHandler
 }
@@ -147,7 +149,7 @@ func CreateClient() MBeanClient {
 	return client
 }
 
-// CreateClient is a method that will create a bound MBeanClient
+// CreateClientWithLimitation is a method that will create a bound MBeanClient
 // This will only use as many native threads as provided by limit
 func CreateClientWithLimitation(limit uint) MBeanClient {
 	client := &client{
@@ -161,19 +163,18 @@ func CreateClientWithLimitation(limit uint) MBeanClient {
 	return client
 }
 
-func internalExecuteAgainstAll(mbeans *map[uuid.UUID]mbean.BeanExecutor, maxNumberOfGoRoutines uint, execution func(uuid.UUID) (string, error)) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	results := make(chan batchExecutionResult, len(*mbeans))
+func internalExecuteAgainstAll(numberOfConnections *uint, mbeans *sync.Map, maxNumberOfGoRoutines uint, execution func(uuid.UUID) (string, error)) (map[uuid.UUID]string, map[uuid.UUID]error) {
+	maxLimitOfConcurrency := *numberOfConnections
+	results := make(chan batchExecutionResult, maxLimitOfConcurrency)
 	wg := &sync.WaitGroup{}
 
-	maxLimitOfConcurrency := len(*mbeans)
-
 	if maxNumberOfGoRoutines > 0 {
-		maxLimitOfConcurrency = int(maxNumberOfGoRoutines)
+		maxLimitOfConcurrency = maxNumberOfGoRoutines
 	}
 
 	guard := make(chan struct{}, maxLimitOfConcurrency)
 
-	for id := range *mbeans {
+	mbeans.Range(func(key, value any) bool {
 
 		// this will block if there are no available threads
 		guard <- struct{}{}
@@ -189,15 +190,16 @@ func internalExecuteAgainstAll(mbeans *map[uuid.UUID]mbean.BeanExecutor, maxNumb
 
 			results <- result
 			<-guard // this will release this threads guard
-		}(id)
+		}(key.(uuid.UUID))
 
-	}
+		return true
+	})
 
 	wg.Wait()
 	result := make(map[uuid.UUID]string)
 	receivedErrors := make(map[uuid.UUID]error)
 
-	for i := 0; i < len(*mbeans); i++ {
+	for i := 0; i < int(*numberOfConnections); i++ {
 		res := <-results
 
 		result[res.id] = res.result
@@ -216,6 +218,7 @@ func (client *client) GetOperator() MBeanOperator {
 		mbeans:                &client.mbeans,
 		classHandlers:         &client.classHandlers,
 		interfaceHandlers:     &client.interfaceHandlers,
+		numberOfConnections:   &client.numberOfConnections,
 	}
 }
 
@@ -228,5 +231,6 @@ func (client *client) GetAttributeManager() MBeanAttributeManager {
 		mbeans:                &client.mbeans,
 		classHandlers:         &client.classHandlers,
 		interfaceHandlers:     &client.interfaceHandlers,
+		numberOfConnections:   &client.numberOfConnections,
 	}
 }

@@ -2,6 +2,7 @@ package gmx
 
 import (
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/arinn1204/gmx/internal/jvm"
@@ -72,7 +73,7 @@ func TestConnect_HappyPath(t *testing.T) {
 	java = mockJava
 
 	client := &client{
-		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
+		mbeans: sync.Map{},
 	}
 
 	id, err := client.Connect("localhost", 9001)
@@ -80,7 +81,10 @@ func TestConnect_HappyPath(t *testing.T) {
 	assert.Nil(t, err)
 	mockJava.AssertCalled(t, "CreateMBeanConnection", "service:jmx:rmi:///jndi/rmi://localhost:9001/jmxrmi")
 
-	assert.Equal(t, client.mbeans[*id], mockExecutor)
+	exec, ok := client.mbeans.Load(*id)
+
+	assert.True(t, ok)
+	assert.Equal(t, exec, mockExecutor)
 }
 
 func TestConnect_ConnectFails(t *testing.T) {
@@ -90,7 +94,7 @@ func TestConnect_ConnectFails(t *testing.T) {
 	java = mockJava
 
 	client := &client{
-		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
+		mbeans: sync.Map{},
 	}
 
 	id, err := client.Connect("localhost", 9001)
@@ -108,7 +112,8 @@ func TestClose_WithConnections(t *testing.T) {
 	java = mockJVM
 
 	client := &client{
-		mbeans: make(map[uuid.UUID]mbean.BeanExecutor),
+		mbeans:              sync.Map{},
+		numberOfConnections: 1,
 	}
 
 	id := uuid.New()
@@ -116,11 +121,13 @@ func TestClose_WithConnections(t *testing.T) {
 
 	mockBean.On("Close").Once()
 
-	client.mbeans[id] = &mockBean
+	client.mbeans.Store(id, &mockBean)
 
 	client.Close()
 
-	assert.Nil(t, client.mbeans[id])
+	exec, ok := client.mbeans.Load(id)
+	assert.False(t, ok)
+	assert.Nil(t, exec)
 
 	mockBean.AssertCalled(t, "Close")
 	mockJVM.AssertCalled(t, "ShutdownJvm")

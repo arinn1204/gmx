@@ -1,6 +1,8 @@
 package gmx
 
 import (
+	"fmt"
+
 	"github.com/arinn1204/gmx/internal/mbean"
 	"github.com/google/uuid"
 )
@@ -10,7 +12,7 @@ import (
 //
 // All executions will be run in separate go routines, so this needs to be planned for accordingly
 func (operator *operator) ExecuteAgainstAll(domain string, name string, operation string, args ...MBeanArgs) (map[uuid.UUID]string, map[uuid.UUID]error) {
-	return internalExecuteAgainstAll(operator.mbeans, operator.maxNumberOfGoRoutines, func(id uuid.UUID) (string, error) {
+	return internalExecuteAgainstAll(operator.numberOfConnections, operator.mbeans, operator.maxNumberOfGoRoutines, func(id uuid.UUID) (string, error) {
 		return operator.ExecuteAgainstID(id, domain, name, operation, args...)
 	})
 }
@@ -21,7 +23,13 @@ func (operator *operator) ExecuteAgainstID(id uuid.UUID, domain string, name str
 	env := java.Attach()
 	defer java.Detach()
 
-	bean := (*operator.mbeans)[id].WithEnvironment(env)
+	bean, ok := (*operator.mbeans).Load(id)
+
+	if !ok {
+		return "", fmt.Errorf("id %s does not exist in the established connections", id.String())
+	}
+
+	scopedBean := bean.(mbean.BeanExecutor).WithEnvironment(env)
 
 	operationArgs := make([]mbean.OperationArgs, 0)
 
@@ -43,5 +51,5 @@ func (operator *operator) ExecuteAgainstID(id uuid.UUID, domain string, name str
 		Args:      operationArgs,
 	}
 
-	return bean.Execute(mbeanOp)
+	return scopedBean.Execute(mbeanOp)
 }
