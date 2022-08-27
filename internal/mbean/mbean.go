@@ -103,6 +103,32 @@ func (mbean *Client) Close() {
 	mbean.JmxConnection.CallMethod(mbean.Env, "close", nil)
 }
 
+func (mbean *Client) OpenConnection(jndiURI string) error {
+	stringRef, err := mbean.Env.NewObject("java/lang/String", []byte(jndiURI))
+
+	if err != nil {
+		return fmt.Errorf("failed to create a string from %s::%s", jndiURI, err.Error())
+	}
+
+	jmxURL, err := mbean.Env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
+	if err != nil {
+		return errors.New("failed to create JMXServiceURL::" + err.Error())
+	}
+
+	if err != nil {
+		return errors.New("failed to create a blank map::" + err.Error())
+	}
+
+	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
+
+	connectorFactory := "javax/management/remote/JMXConnectorFactory"
+	if err = mbean.Env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxURL); err != nil {
+		return errors.New("failed to create a JMX connection Factory::" + err.Error())
+	}
+
+	return nil
+}
+
 // Execute is the orchestration for a JMX command execution.
 func (mbean *Client) Execute(operation Operation) (string, error) {
 

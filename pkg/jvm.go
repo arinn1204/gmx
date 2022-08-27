@@ -99,9 +99,17 @@ func (client *client) dec() {
 // helpful if wanting to be able to tell which MBeans go to which location
 func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
-	bean, err := java.CreateMBeanConnection(jmxURI)
+	env := java.Attach()
 
-	if err != nil {
+	defer java.Detach()
+
+	bean := &mbean.Client{
+		Env:               env,
+		ClassHandlers:     make(map[string]extensions.IHandler),
+		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+	}
+
+	if err := bean.OpenConnection(jmxURI); err != nil {
 		return nil, errors.New("failed to create a connection::" + err.Error())
 	}
 
