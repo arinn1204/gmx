@@ -98,11 +98,9 @@ func (client *client) dec() {
 	lock.Unlock()
 }
 
-// Connect is the initializing method for the MBean itself. It will
-// connect to the remote server and assign the given connection a UUID.
-// The GMX client will store references to MBean clients, the UUID's will be
-// helpful if wanting to be able to tell which MBeans go to which location
-func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
+// RegisterBean is the initializing method for the MBean itself. It will store the
+// address provided and register the bean with the client to be executed later.
+func (client *client) RegisterBean(hostname string, port int) (*uuid.UUID, error) {
 	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
 
 	bean := &mbean.Client{

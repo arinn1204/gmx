@@ -19,29 +19,6 @@ func (_m *MockMBeanClient) Close() {
 	_m.Called()
 }
 
-// Connect provides a mock function with given fields: hostname, port
-func (_m *MockMBeanClient) Connect(hostname string, port int) (*uuid.UUID, error) {
-	ret := _m.Called(hostname, port)
-
-	var r0 *uuid.UUID
-	if rf, ok := ret.Get(0).(func(string, int) *uuid.UUID); ok {
-		r0 = rf(hostname, port)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*uuid.UUID)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int) error); ok {
-		r1 = rf(hostname, port)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetAttributeManager provides a mock function with given fields:
 func (_m *MockMBeanClient) GetAttributeManager() MBeanAttributeManager {
 	ret := _m.Called()
@@ -86,6 +63,29 @@ func (_m *MockMBeanClient) Initialize() error {
 	}
 
 	return r0
+}
+
+// RegisterBean provides a mock function with given fields: hostname, port
+func (_m *MockMBeanClient) RegisterBean(hostname string, port int) (*uuid.UUID, error) {
+	ret := _m.Called(hostname, port)
+
+	var r0 *uuid.UUID
+	if rf, ok := ret.Get(0).(func(string, int) *uuid.UUID); ok {
+		r0 = rf(hostname, port)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*uuid.UUID)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(hostname, port)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // RegisterClassHandler provides a mock function with given fields: typeName, handler

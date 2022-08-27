@@ -19,7 +19,7 @@ func Run(domain string, name string, operation string, args string, types string
 
 	defer client.Close()
 
-	id, err := client.Connect("127.0.0.1", 9001)
+	id, err := client.RegisterBean("127.0.0.1", 9001)
 
 	if err != nil {
 		log.Fatal(err)

@@ -57,9 +57,9 @@ type MBeanClient interface {
 	// how to convert between go and jni
 	RegisterInterfaceHandler(typeName string, handler extensions.InterfaceHandler)
 
-	// Connect will create a new mbean connection defined by the hostname and port
+	// RegisterBean will create a new mbean connection defined by the hostname and port
 	// The reference to this connection is stored for the life of the operator
-	Connect(hostname string, port int) (*uuid.UUID, error)
+	RegisterBean(hostname string, port int) (*uuid.UUID, error)
 
 	// This will return the type that is responsible for executing operations
 	GetOperator() MBeanOperator
