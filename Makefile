@@ -6,7 +6,7 @@ JAVAC				:= javac
 
 .PHONY: build clean vendor test integration_test mocks jniexample
 
-all: clean vendor integration_test stop snapshot
+all: clean vendor lint integration_test stop release_patch
 
 install:
 	CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" go install github.com/arinn1204/gmx
@@ -23,7 +23,11 @@ clean:
 snapshot:
 	goreleaser release --snapshot --rm-dist -f .mac.goreleaser.yaml
 
-release:
+release_patch: clean vendor lint integration_test
+	bash scripts/git.sh
+#	goreleaser release --rm-dist -f .mac.goreleaser.yaml
+
+release: clean vendor lint integration_test
 	goreleaser release --rm-dist -f .mac.goreleaser.yaml
 
 vendor:
