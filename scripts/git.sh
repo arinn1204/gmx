@@ -12,8 +12,12 @@ VNUM2=${VERSION_BITS[1]}
 VNUM3=${VERSION_BITS[2]}
 VNUM3=$((VNUM3+1))
 
-#create new tag
-NEW_TAG="$VNUM1.$VNUM2.$VNUM3"
+if [[ -z $1 ]]; then 
+    #create new tag
+    NEW_TAG="$VNUM1.$VNUM2.$VNUM3"
+else 
+    NEW_TAG=$1
+fi
 
 echo "Updating $VERSION to $NEW_TAG"
 
