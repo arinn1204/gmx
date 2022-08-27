@@ -25,7 +25,7 @@ snapshot:
 
 release_patch: clean mocks vendor lint integration_test
 	bash scripts/dirty.sh
-	bash scripts/git.sh
+	bash scripts/increment_tag.sh
 	goreleaser release --rm-dist -f .mac.goreleaser.yaml
 
 release: clean mocks vendor lint integration_test
