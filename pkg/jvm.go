@@ -1,7 +1,6 @@
 package gmx
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -99,18 +98,11 @@ func (client *client) dec() {
 // helpful if wanting to be able to tell which MBeans go to which location
 func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
-	env := java.Attach()
-
-	defer java.Detach()
 
 	bean := &mbean.Client{
-		Env:               env,
+		JmxURI:            jmxURI,
 		ClassHandlers:     make(map[string]extensions.IHandler),
 		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
-	}
-
-	if err := bean.OpenConnection(jmxURI); err != nil {
-		return nil, errors.New("failed to create a connection::" + err.Error())
 	}
 
 	id := uuid.New()
@@ -123,18 +115,12 @@ func (client *client) Connect(hostname string, port int) (*uuid.UUID, error) {
 // that the GMX client is still holding on as well as shutting down the JVM
 func (client *client) Close() {
 
-	keys := make([]uuid.UUID, 0)
 	client.mbeans.Range(func(key, value any) bool {
-		bean := value.(mbean.BeanExecutor)
-		bean.Close()
-		keys = append(keys, key.(uuid.UUID))
-		return true
-	})
-
-	for _, key := range keys {
 		client.mbeans.Delete(key)
 		client.dec()
-	}
+		return true
+
+	})
 
 	java.ShutdownJvm()
 }

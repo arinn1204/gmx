@@ -89,6 +89,5 @@ func TestClose_WithConnections(t *testing.T) {
 	assert.False(t, ok)
 	assert.Nil(t, exec)
 
-	mockBean.AssertCalled(t, "Close")
 	mockJVM.AssertCalled(t, "ShutdownJvm")
 }

@@ -3,7 +3,6 @@
 package jvm
 
 import (
-	mbean "github.com/arinn1204/gmx/internal/mbean"
 	mock "github.com/stretchr/testify/mock"
 	jnigi "tekao.net/jnigi"
 )
@@ -45,29 +44,6 @@ func (_m *MockIJava) CreateJVM() (IJava, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// CreateMBeanConnection provides a mock function with given fields: uri
-func (_m *MockIJava) CreateMBeanConnection(uri string) (mbean.BeanExecutor, error) {
-	ret := _m.Called(uri)
-
-	var r0 mbean.BeanExecutor
-	if rf, ok := ret.Get(0).(func(string) mbean.BeanExecutor); ok {
-		r0 = rf(uri)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(mbean.BeanExecutor)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(uri)
 	} else {
 		r1 = ret.Error(1)
 	}

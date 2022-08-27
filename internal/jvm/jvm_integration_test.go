@@ -14,6 +14,7 @@ import (
 
 	"github.com/arinn1204/gmx/internal/handlers"
 	"github.com/arinn1204/gmx/internal/mbean"
+	"github.com/arinn1204/gmx/pkg/extensions"
 
 	"github.com/stretchr/testify/assert"
 	"tekao.net/jnigi"
@@ -34,30 +35,6 @@ func TestMain(m *testing.M) {
 
 }
 
-func TestCanInitializeConnectionToRemoteJVM(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping Integration tests when running short mode")
-	}
-
-	lockCurrentThread(java)
-	defer unlockCurrentThread(java)
-	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
-	assert.Nil(t, err)
-}
-
-func TestOnConnectionErrors(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping Integration tests when running short mode")
-	}
-	lockCurrentThread(java)
-	defer unlockCurrentThread(java)
-
-	_, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9901/jmxrmi")
-
-	expected := "failed to create a JMX connection Factory::java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.ServiceUnavailableException [Root exception is java.rmi.ConnectException: Connection refused to host: 127.0.0.1; nested exception is: \n\tjava.net.ConnectException: Connection refused]"
-	assert.Equal(t, expected, err.Error())
-}
-
 func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping Integration tests when running short mode")
@@ -65,19 +42,22 @@ func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
 	lockCurrentThread(java)
 	defer unlockCurrentThread(java)
 
-	var err error
-	var mbean1 mbean.BeanExecutor
-	var mbean2 mbean.BeanExecutor
+	mbean1 := &mbean.Client{
+		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+		ClassHandlers:     make(map[string]extensions.IHandler),
+		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+		Env:               java.Env,
+	}
 
-	mbean1, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	assert.Nil(t, err)
-	defer mbean1.Close()
 	registerHandlers(mbean1)
+	mbean2 := &mbean.Client{
+		JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+		ClassHandlers:     make(map[string]extensions.IHandler),
+		InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+		Env:               java.Env,
+	}
 
-	mbean2, err = java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-	assert.Nil(t, err)
 	registerHandlers(mbean2)
-	defer mbean2.Close()
 
 	testData := []testDataContainer{
 		{
@@ -144,10 +124,14 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 		lockCurrentThread(java)
 		defer unlockCurrentThread(java)
 
-		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-		assert.Nil(t, err)
+		mbean := &mbean.Client{
+			JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+			ClassHandlers:     make(map[string]extensions.IHandler),
+			InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+			Env:               java.Env,
+		}
+
 		registerHandlers(mbean)
-		defer mbean.Close()
 
 		testData := testDataContainer{
 			initialData: &testData{value: "fan369", className: "java.lang.String", operationName: "putString"},
@@ -168,9 +152,14 @@ func TestCanConnectToMultipleMBeansAsynchronously(t *testing.T) {
 
 		lockCurrentThread(java)
 		defer unlockCurrentThread(java)
-		mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:5001/jmxrmi")
-		assert.Nil(t, err)
-		defer mbean.Close()
+
+		mbean := &mbean.Client{
+			JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+			ClassHandlers:     make(map[string]extensions.IHandler),
+			InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+			Env:               java.Env,
+		}
+
 		registerHandlers(mbean)
 
 		testData := testDataContainer{
@@ -249,14 +238,21 @@ func TestCanCallIntoJmxAndGetResultWithMapsThatHaveInterfaceValues(t *testing.T)
 	for _, collectionType := range collections {
 		innerType := typeMapping[collectionType]
 		t.Run(fmt.Sprintf("TestJmxAndGetResultsFor_AdvancedMap<String, %s>", innerType), func(t *testing.T) {
+
+			lockCurrentThread(java)
+			defer unlockCurrentThread(java)
 			values := valueMapping[collectionType]
 			str := toString(values, t)
 
 			data := testData{value: str, className: fmt.Sprintf("java.lang.%s", innerType), containerName: fmt.Sprintf("java.util.%s", collectionType), operationName: fmt.Sprintf("put%s", collectionType)}
 
-			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-			assert.Nil(t, err)
-			defer mbean.Close()
+			mbean := &mbean.Client{
+				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+				ClassHandlers:     make(map[string]extensions.IHandler),
+				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				Env:               java.Env,
+			}
+
 			registerHandlers(mbean)
 
 			insertData(java.Env, data, t, mbean)
@@ -350,10 +346,15 @@ func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
 
 			data := testData{value: str, className: className, operationName: fmt.Sprintf("put%s", valueType)}
 
-			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-			assert.Nil(t, err)
+			mbean := &mbean.Client{
+				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+				ClassHandlers:     make(map[string]extensions.IHandler),
+				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				Env:               java.Env,
+			}
+
 			registerHandlers(mbean)
-			defer mbean.Close()
+			var err error
 
 			insertData(java.Env, data, t, mbean)
 
@@ -458,9 +459,13 @@ func TestCanCallIntoJmxAndGetResultWithCollections(t *testing.T) {
 
 				data := testData{value: string(strBytes), className: className, containerName: containerName, operationName: fmt.Sprintf("put%s", collection)}
 
-				mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-				assert.Nil(t, err)
-				defer mbean.Close()
+				mbean := &mbean.Client{
+					JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+					ClassHandlers:     make(map[string]extensions.IHandler),
+					InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+					Env:               java.Env,
+				}
+
 				registerHandlers(mbean)
 
 				insertData(java.Env, data, t, mbean)
@@ -587,13 +592,17 @@ func TestCanCallIntoJmxAndGetResultWithPrimitiveTypes(t *testing.T) {
 			lockCurrentThread(java)
 			defer unlockCurrentThread(java)
 
-			mbean, err := java.CreateMBeanConnection("service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi")
-			assert.Nil(t, err)
-			defer mbean.Close()
-			registerHandlers(mbean)
+			bean := &mbean.Client{
+				JmxURI:            "service:jmx:rmi:///jndi/rmi://127.0.0.1:9001/jmxrmi",
+				ClassHandlers:     make(map[string]extensions.IHandler),
+				InterfaceHandlers: make(map[string]extensions.InterfaceHandler),
+				Env:               java.Env,
+			}
 
-			insertData(java.Env, *data.initialData, t, mbean)
-			result := readData(java.Env, *data.readData, t, mbean)
+			registerHandlers(bean)
+
+			insertData(java.Env, *data.initialData, t, bean)
+			result := readData(java.Env, *data.readData, t, bean)
 			assert.Equal(t, data.expectedVal, result)
 		})
 	}

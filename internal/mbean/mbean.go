@@ -20,7 +20,7 @@ const (
 // JmxConnection is the living connection that was created when `CreateMBeanConnection` was called to create the Client
 // Env is the environment that belongs to this bean, this will not always match the JVM env!
 type Client struct {
-	JmxConnection     *jnigi.ObjectRef
+	JmxURI            string
 	Env               *jnigi.Env
 	ClassHandlers     map[string]extensions.IHandler
 	InterfaceHandlers map[string]extensions.InterfaceHandler
@@ -62,7 +62,7 @@ type BeanExecutor interface {
 	Put(domainName string, beanName string, attributeName string, args OperationArgs) (string, error)
 	WithEnvironment(env *jnigi.Env) BeanExecutor
 	GetEnv() *jnigi.Env
-	Close()
+	OpenConnection(jndiURI string) (*jnigi.ObjectRef, error)
 }
 
 // RegisterClassHandler will register the given class handlers
@@ -83,7 +83,6 @@ func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extension
 // This is handy when using the same JmxConnection in sub threads
 func (mbean *Client) WithEnvironment(env *jnigi.Env) BeanExecutor {
 	return &Client{
-		JmxConnection:     mbean.JmxConnection,
 		Env:               env,
 		ClassHandlers:     mbean.ClassHandlers,
 		InterfaceHandlers: mbean.InterfaceHandlers,
@@ -98,35 +97,37 @@ func (mbean *Client) GetEnv() *jnigi.Env {
 // Close is a method that will clean up all of the MBeans resources
 // It will close the JMX method within the JVM as well as deleting the connection
 // from the JNI resources
-func (mbean *Client) Close() {
-	defer mbean.Env.DeleteLocalRef(mbean.JmxConnection)
-	mbean.JmxConnection.CallMethod(mbean.Env, "close", nil)
+func Close(env *jnigi.Env, connection *jnigi.ObjectRef) {
+	defer env.DeleteLocalRef(connection)
+	connection.CallMethod(env, "close", nil)
 }
 
-func (mbean *Client) OpenConnection(jndiURI string) error {
+// OpenConnection is a method that will establish a new connection against
+// the given URI
+func (mbean *Client) OpenConnection(jndiURI string) (*jnigi.ObjectRef, error) {
 	stringRef, err := mbean.Env.NewObject("java/lang/String", []byte(jndiURI))
 
 	if err != nil {
-		return fmt.Errorf("failed to create a string from %s::%s", jndiURI, err.Error())
+		return nil, fmt.Errorf("failed to create a string from %s::%s", jndiURI, err.Error())
 	}
 
 	jmxURL, err := mbean.Env.NewObject("javax/management/remote/JMXServiceURL", stringRef)
 	if err != nil {
-		return errors.New("failed to create JMXServiceURL::" + err.Error())
+		return nil, errors.New("failed to create JMXServiceURL::" + err.Error())
 	}
 
 	if err != nil {
-		return errors.New("failed to create a blank map::" + err.Error())
+		return nil, errors.New("failed to create a blank map::" + err.Error())
 	}
 
 	jmxConnector := jnigi.NewObjectRef("javax/management/remote/JMXConnector")
 
 	connectorFactory := "javax/management/remote/JMXConnectorFactory"
 	if err = mbean.Env.CallStaticMethod(connectorFactory, "connect", jmxConnector, jmxURL); err != nil {
-		return errors.New("failed to create a JMX connection Factory::" + err.Error())
+		return nil, errors.New("failed to create a JMX connection Factory::" + err.Error())
 	}
 
-	return nil
+	return jmxConnector, nil
 }
 
 // Execute is the orchestration for a JMX command execution.
@@ -148,7 +149,14 @@ func (mbean *Client) invoke(env *jnigi.Env, operation Operation, outParam *jnigi
 
 	defer env.DeleteLocalRef(objectName)
 
-	mBeanServerConnector, err := createMBeanServerConnection(env, mbean)
+	connection, err := mbean.OpenConnection(mbean.JmxURI)
+	if err != nil {
+		return err
+	}
+
+	defer Close(mbean.Env, connection)
+
+	mBeanServerConnector, err := createMBeanServerConnection(env, connection)
 
 	if err != nil {
 		return errors.New("failed to create the mbean server connection::" + err.Error())
@@ -202,9 +210,9 @@ func (mbean *Client) getArray(env *jnigi.Env, args []OperationArgs, methodTypes 
 	return env.ToObjectArray(types, className), nil
 }
 
-func createMBeanServerConnection(env *jnigi.Env, mbean *Client) (*jnigi.ObjectRef, error) {
+func createMBeanServerConnection(env *jnigi.Env, connection *jnigi.ObjectRef) (*jnigi.ObjectRef, error) {
 	mBeanServerConnector := jnigi.NewObjectRef("javax/management/MBeanServerConnection")
-	if err := mbean.JmxConnection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
+	if err := connection.CallMethod(env, "getMBeanServerConnection", mBeanServerConnector); err != nil {
 		return nil, errors.New("failed to create the mbean server connection::" + err.Error())
 	}
 

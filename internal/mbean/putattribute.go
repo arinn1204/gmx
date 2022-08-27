@@ -12,7 +12,14 @@ import (
 // The value must be able to be converted to the java representation that the server is expecting
 // If this is a custom type, then a handler will need to be defined
 func (mbean *Client) Put(domainName string, beanName string, attributeName string, args OperationArgs) (string, error) {
-	mBeanServerConnector, err := createMBeanServerConnection(mbean.Env, mbean)
+	connection, err := mbean.OpenConnection(mbean.JmxURI)
+	if err != nil {
+		return "", err
+	}
+
+	defer Close(mbean.Env, connection)
+
+	mBeanServerConnector, err := createMBeanServerConnection(mbean.Env, connection)
 
 	if err != nil {
 		return "", errors.New("failed to create the mbean server connection::" + err.Error())
