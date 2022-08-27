@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -30,9 +29,9 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	code := m.Run()
-	os.Exit(code)
+	m.Run()
 
+	java.ShutdownJvm()
 }
 
 func TestCanConnectToMultipleMBeansSynchronously(t *testing.T) {
