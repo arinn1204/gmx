@@ -84,6 +84,7 @@ func (mbean *Client) RegisterInterfaceHandler(typeName string, handler extension
 // This is handy when using the same JmxConnection in sub threads
 func (mbean *Client) WithEnvironment(env *jnigi.Env) BeanExecutor {
 	return &Client{
+		JmxURI:            mbean.JmxURI,
 		Env:               env,
 		ClassHandlers:     mbean.ClassHandlers,
 		InterfaceHandlers: mbean.InterfaceHandlers,
