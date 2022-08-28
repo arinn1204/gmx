@@ -65,8 +65,13 @@ func (_m *MockMBeanClient) Initialize() error {
 	return r0
 }
 
-// RegisterBean provides a mock function with given fields: hostname, port
-func (_m *MockMBeanClient) RegisterBean(hostname string, port int) (*uuid.UUID, error) {
+// RegisterClassHandler provides a mock function with given fields: typeName, handler
+func (_m *MockMBeanClient) RegisterClassHandler(typeName string, handler extensions.IHandler) {
+	_m.Called(typeName, handler)
+}
+
+// RegisterConnection provides a mock function with given fields: hostname, port
+func (_m *MockMBeanClient) RegisterConnection(hostname string, port int) (*uuid.UUID, error) {
 	ret := _m.Called(hostname, port)
 
 	var r0 *uuid.UUID
@@ -86,11 +91,6 @@ func (_m *MockMBeanClient) RegisterBean(hostname string, port int) (*uuid.UUID, 
 	}
 
 	return r0, r1
-}
-
-// RegisterClassHandler provides a mock function with given fields: typeName, handler
-func (_m *MockMBeanClient) RegisterClassHandler(typeName string, handler extensions.IHandler) {
-	_m.Called(typeName, handler)
 }
 
 // RegisterInterfaceHandler provides a mock function with given fields: typeName, handler

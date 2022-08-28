@@ -59,7 +59,7 @@ type MBeanClient interface {
 
 	// RegisterBean will create a new mbean connection defined by the hostname and port
 	// The reference to this connection is stored for the life of the operator
-	RegisterBean(hostname string, port int) (*uuid.UUID, error)
+	RegisterConnection(hostname string, port int) (*uuid.UUID, error)
 
 	// This will return the type that is responsible for executing operations
 	GetOperator() MBeanOperator

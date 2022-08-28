@@ -25,7 +25,7 @@ func TestCanMakeMultipleAccountsInParrallel(t *testing.T) {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup) {
 			defer wg.Done()
-			id, err := gmxClient.RegisterBean("127.0.0.1", 9001)
+			id, err := gmxClient.RegisterConnection("127.0.0.1", 9001)
 
 			assert.Nil(t, err)
 			lock.Lock()
@@ -62,7 +62,7 @@ func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup) {
 			defer wg.Done()
-			id, err := gmxClient.RegisterBean("127.0.0.1", 9001)
+			id, err := gmxClient.RegisterConnection("127.0.0.1", 9001)
 			gmxClient.RegisterClassHandler(handlers.BoolClasspath, &handlers.BoolHandler{})
 
 			assert.Nil(t, err)

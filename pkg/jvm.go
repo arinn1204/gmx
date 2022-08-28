@@ -100,7 +100,7 @@ func (client *client) dec() {
 
 // RegisterBean is the initializing method for the MBean itself. It will store the
 // address provided and register the bean with the client to be executed later.
-func (client *client) RegisterBean(hostname string, port int) (*uuid.UUID, error) {
+func (client *client) RegisterConnection(hostname string, port int) (*uuid.UUID, error) {
 	jmxURI := fmt.Sprintf("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname, port)
 
 	bean := &mbean.Client{
