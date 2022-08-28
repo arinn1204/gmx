@@ -88,6 +88,7 @@ func (java *Java) ShutdownJvm() error {
 
 	java.jvm = nil
 	java.Env = nil
+	java.started = false
 
 	return nil
 }

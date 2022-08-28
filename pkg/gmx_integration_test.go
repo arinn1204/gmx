@@ -9,12 +9,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var gmxClient MBeanClient
+
+func TestMain(m *testing.M) {
+
+	gmxClient = CreateClient()
+	defer gmxClient.Close()
+
+	m.Run()
+
+}
+
+func teardownTest() {
+	c := gmxClient.(*client)
+
+	c.mbeans.Range(func(key, value any) bool {
+		c.mbeans.Delete(key)
+		return true
+	})
+
+	c.numberOfConnections = 0
+}
+
 func TestCanMakeMultipleAccountsInParrallel(t *testing.T) {
 	if testing.Short() {
 		return
 	}
-	gmxClient := CreateClient()
 	wg := sync.WaitGroup{}
+	defer teardownTest()
 
 	ids := make([]uuid.UUID, 0)
 	lock := sync.Mutex{}
@@ -41,16 +63,13 @@ func TestCanMakeMultipleAccountsInParrallel(t *testing.T) {
 
 	c := gmxClient.(*client)
 	assert.Equal(t, uint(totalConnections), c.numberOfConnections)
-
-	c.Close()
-	assert.Equal(t, uint(0), c.numberOfConnections)
 }
 
 func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
 	if testing.Short() {
 		return
 	}
-	gmxClient := CreateClient()
+	defer teardownTest()
 	wg := sync.WaitGroup{}
 
 	ids := make([]uuid.UUID, 0)
@@ -79,7 +98,58 @@ func TestCanMakeMultipleAccountsInParralelAndRegisterHandlers(t *testing.T) {
 
 	c := gmxClient.(*client)
 	assert.Equal(t, uint(totalConnections), c.numberOfConnections)
+}
 
-	c.Close()
-	assert.Equal(t, uint(0), c.numberOfConnections)
+func TestCanExecuteGetOperation(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	id, err := gmxClient.RegisterConnection("127.0.0.1", 9001)
+
+	assert.Nil(t, err)
+
+	operator := gmxClient.GetOperator()
+	res, errmap := operator.ExecuteAgainstAll("org.example", "game", "getString", MBeanArgs{Value: "hello"})
+
+	assert.Nil(t, errmap[*id])
+	assert.Equal(t, "world", res[*id])
+}
+
+func TestCanExecutePutOperation(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	id, err := gmxClient.RegisterConnection("127.0.0.1", 9001)
+
+	assert.Nil(t, err)
+
+	operator := gmxClient.GetOperator()
+	res, errmap := operator.ExecuteAgainstAll("org.example", "game", "putString", MBeanArgs{Value: "hello"}, MBeanArgs{Value: "world2"})
+
+	assert.Nil(t, errmap[*id])
+	assert.Equal(t, "", res[*id])
+
+	res, errmap = operator.ExecuteAgainstAll("org.example", "game", "getString", MBeanArgs{Value: "hello"})
+	assert.Nil(t, errmap[*id])
+	assert.Equal(t, "world2", res[*id])
+
+	operator.ExecuteAgainstAll("org.example", "game", "putString", MBeanArgs{Value: "hello"}, MBeanArgs{Value: "world"})
+}
+
+func TestCanGetAttribute(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	id, err := gmxClient.RegisterConnection("127.0.0.1", 9001)
+
+	assert.Nil(t, err)
+
+	mng := gmxClient.GetAttributeManager()
+	resmap, errmap := mng.Get("org.example", "game", "NestedAttribute", MBeanArgs{})
+
+	assert.Nil(t, errmap[*id])
+
+	assert.Equal(t, "[[1,2,3]]", resmap[*id])
 }

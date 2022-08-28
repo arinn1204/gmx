@@ -26,8 +26,11 @@ func (manager *attributeManager) GetByID(id uuid.UUID, domain string, beanName s
 		JavaContainerType: args.JavaContainerType,
 	}
 
+	env := java.Attach()
+	defer java.Detach()
+
 	if mbeanClient, ok := (*manager.mbeans).Load(id); ok {
-		return mbeanClient.(mbean.BeanExecutor).Get(domain, beanName, attributeName, operationArgs)
+		return mbeanClient.(mbean.BeanExecutor).WithEnvironment(env).Get(domain, beanName, attributeName, operationArgs)
 	}
 
 	return "", fmt.Errorf("id of %s does not exist as an established connection to execute get on", id.String())
@@ -40,8 +43,11 @@ func (manager *attributeManager) PutByID(id uuid.UUID, domain string, beanName s
 		JavaContainerType: args.JavaContainerType,
 	}
 
+	env := java.Attach()
+	defer java.Detach()
+
 	if mbeanClient, ok := (*manager.mbeans).Load(id); ok {
-		return mbeanClient.(mbean.BeanExecutor).Put(domain, beanName, attributeName, operationArgs)
+		return mbeanClient.(mbean.BeanExecutor).WithEnvironment(env).Put(domain, beanName, attributeName, operationArgs)
 	}
 
 	return "", fmt.Errorf("id of %s does not exist as an established connection to execute put on", id.String())
