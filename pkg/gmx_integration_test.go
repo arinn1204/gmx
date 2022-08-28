@@ -110,10 +110,10 @@ func TestCanExecuteGetOperation(t *testing.T) {
 	assert.Nil(t, err)
 
 	operator := gmxClient.GetOperator()
-	res, errmap := operator.ExecuteAgainstAll("org.example", "game", "getString", MBeanArgs{Value: "hello"})
+	res, errmap := operator.ExecuteAgainstAll("org.example", "game", "getLong", MBeanArgs{Value: "hello"})
 
 	assert.Nil(t, errmap[*id])
-	assert.Equal(t, "world", res[*id])
+	assert.Equal(t, "3141592", res[*id])
 }
 
 func TestCanExecutePutOperation(t *testing.T) {
@@ -125,16 +125,16 @@ func TestCanExecutePutOperation(t *testing.T) {
 	assert.Nil(t, err)
 
 	operator := gmxClient.GetOperator()
-	res, errmap := operator.ExecuteAgainstAll("org.example", "game", "putString", MBeanArgs{Value: "hello"}, MBeanArgs{Value: "world2"})
+	res, errmap := operator.ExecuteAgainstAll("org.example", "game", "putLong", MBeanArgs{Value: "hello"}, MBeanArgs{Value: "12345678"})
 
 	assert.Nil(t, errmap[*id])
 	assert.Equal(t, "", res[*id])
 
-	res, errmap = operator.ExecuteAgainstAll("org.example", "game", "getString", MBeanArgs{Value: "hello"})
+	res, errmap = operator.ExecuteAgainstAll("org.example", "game", "getLong", MBeanArgs{Value: "hello"})
 	assert.Nil(t, errmap[*id])
-	assert.Equal(t, "world2", res[*id])
+	assert.Equal(t, "12345678", res[*id])
 
-	operator.ExecuteAgainstAll("org.example", "game", "putString", MBeanArgs{Value: "hello"}, MBeanArgs{Value: "world"})
+	operator.ExecuteAgainstAll("org.example", "game", "putLong", MBeanArgs{Value: "hello"}, MBeanArgs{Value: "3141592"})
 }
 
 func TestCanGetAttribute(t *testing.T) {

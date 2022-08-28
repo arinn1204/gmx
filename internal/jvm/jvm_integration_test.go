@@ -405,6 +405,10 @@ func TestCanCallIntoJmxAndGetResultWithBasicMaps(t *testing.T) {
 			expected := make(map[string]any)
 			expected["messi"] = values
 
+			if valueType == "Long" {
+				expected["hello"] = int64(3141592)
+			}
+
 			assert.Equal(t, expected, dest)
 		})
 
