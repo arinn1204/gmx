@@ -153,3 +153,23 @@ func TestCanGetAttribute(t *testing.T) {
 
 	assert.Equal(t, "[[1,2,3]]", resmap[*id])
 }
+
+func TestCanPutAttribute(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	id, err := gmxClient.RegisterConnection("127.0.0.1", 9001)
+
+	assert.Nil(t, err)
+
+	mng := gmxClient.GetAttributeManager()
+	resmap, errmap := mng.Put("org.example", "game", "StringAttribute", MBeanArgs{Value: "Hello"})
+
+	assert.Nil(t, errmap[*id])
+	assert.Equal(t, "", resmap[*id])
+
+	resmap, errmap = mng.Get("org.example", "game", "StringAttribute", MBeanArgs{})
+	assert.Nil(t, errmap[*id])
+	assert.Equal(t, "Hello", resmap[*id])
+}
