@@ -43,7 +43,7 @@ lint:
 test: clean
 	CGO_CFLAGS="$(CGO_CFLAGS)" go test --short ./...
 
-integration_test: stop jniexample clean
+integration_test: stop prune jniexample clean
 	go clean -testcache
 	CGO_CFLAGS="$(CGO_CFLAGS)" go test  ./...
 
@@ -57,3 +57,6 @@ jniexample:
 
 stop:
 	docker compose -f ./test-docker-compose.yml down
+
+prune:
+	docker image prune -f -a
