@@ -43,10 +43,9 @@ lint:
 test: clean
 	CGO_CFLAGS="$(CGO_CFLAGS)" go test --short ./...
 
-integration_test: jniexample clean
+integration_test: stop jniexample clean
 	go clean -testcache
-	CGO_CFLAGS="$(CGO_CFLAGS)" TEST_ENV=$(TEST_ENV) go test  ./...
-	docker compose -f ./test-docker-compose.yml down
+	CGO_CFLAGS="$(CGO_CFLAGS)" go test  ./...
 
 mocks: _mock_gen vendor
 
